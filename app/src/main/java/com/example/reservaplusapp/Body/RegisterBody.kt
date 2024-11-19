@@ -15,7 +15,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.reservaplusapp.ApiService
 import com.example.reservaplusapp.R
+import com.example.reservaplusapp.RegisterRequest
+import com.example.reservaplusapp.RegisterResponse
+import com.example.reservaplusapp.RetrofitInstance
+import retrofit2.Call
+import android.util.Log
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +35,7 @@ fun RegisterBody(
     var lastName by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
@@ -157,11 +165,51 @@ fun RegisterBody(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = onRegisterClick,
+            onClick = {
+                val apiService = RetrofitInstance.api.create(ApiService::class.java)
+                val registerRequest = RegisterRequest(
+                    username = username,
+                    password1 = password,
+                    password2 = confirmPassword,
+                    first_name = firstName,
+                    last_name = lastName,
+                    email = email // Asegúrate de agregar un campo para capturar email
+                )
+
+                apiService.registerUser(registerRequest)
+                    .enqueue(object : retrofit2.Callback<RegisterResponse> {
+                        override fun onResponse(
+                            call: Call<RegisterResponse>,
+                            response: retrofit2.Response<RegisterResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                val registerResponse = response.body()
+                                Log.d("Register", "Registro exitoso: ${registerResponse?.message}")
+                            //println("Registro exitoso: ${registerResponse?.message}")
+                                // Aquí puedes mostrar un diálogo o navegar a otra pantalla
+                            } else {
+                                //println("Error en el registro: ${response.errorBody()?.string()}")
+                                Log.e("Register", "Error en el registro: ${response.errorBody()?.string()}")
+                                // Manejo de errores, muestra un Toast o un Snackbar
+                            }
+                        }
+
+                        override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
+                            println("Error de conexión: ${t.message}")
+
+                            // Manejo de error de conexión
+                        }
+                    })
+            },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF57BDD3))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = Color(0xFF57BDD3)
+            )
         ) {
             Text("Registrarse")
         }
     }
 }
+
+
