@@ -9,6 +9,9 @@ import com.example.reservaplusapp.ui.theme.LoginScreen
 import com.example.reservaplusapp.ui.theme.RegisterScreen
 import com.example.reservaplusapp.ui.theme.SplashScreen
 
+
+import com.example.reservaplusapp.ui.theme.MainScreen
+
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
@@ -26,6 +29,9 @@ fun MainNavigation() {
         }
         composable("register") {
             RegisterScreen(navController = navController)
+        }
+        composable("main") {
+            MainScreen(navController = navController)
         }
     }
 }

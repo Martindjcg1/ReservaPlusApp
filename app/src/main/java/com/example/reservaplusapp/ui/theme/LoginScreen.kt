@@ -9,8 +9,8 @@ import androidx.navigation.NavController
 import com.example.reservaplusapp.Background.BackgroundCanvas
 import com.example.reservaplusapp.Body.LoginBody
 import com.example.reservaplusapp.Footer.LoginFooter
-import com.example.reservaplusapp.Header.LoginHeader
 
+import com.example.reservaplusapp.Header.LoginHeader
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -20,8 +20,11 @@ fun LoginScreen(navController: NavController) {
         LoginBody(
             Modifier.align(Alignment.Center),
             onLoginClick = {
-
-               //logica del login
+                // Implement your login logic here
+                // For now, we'll just navigate to the main screen
+                navController.navigate("main") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
         )
         LoginFooter(
