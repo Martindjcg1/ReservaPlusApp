@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import android.util.Patterns
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ fun LoginBody(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+    val isLoginEnabled by remember(username, password) { mutableStateOf(enableLogin(username, password)) }
 
     Column(
         modifier = modifier.padding(16.dp),
@@ -46,6 +48,7 @@ fun LoginBody(
             label = { Text("Nombre de usuario") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -95,7 +98,13 @@ fun LoginBody(
         Button(
             onClick = onLoginClick,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF57BDD3))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = Color(0xFF57BDD3),
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.DarkGray
+            ),
+            enabled = isLoginEnabled
         ) {
             Text("Iniciar sesión")
         }
@@ -130,7 +139,7 @@ fun LoginDivider() {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-            HorizontalDivider(
+        HorizontalDivider(
             color = Color.White.copy(alpha = 0.5f),
             modifier = Modifier.weight(1f)
         )
@@ -145,4 +154,10 @@ fun LoginDivider() {
             modifier = Modifier.weight(1f)
         )
     }
+}
+
+fun enableLogin(username: String, password: String): Boolean {
+    val isUsernameValid = username.isNotBlank() && username.length >= 4
+    val isPasswordValid = password.length > 6
+    return isUsernameValid && isPasswordValid
 }

@@ -1,15 +1,12 @@
 package com.example.reservaplusapp.Body
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,114 +18,226 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import androidx.compose.ui.unit.sp
 import com.example.reservaplusapp.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
 
 @Composable
-fun MainBody() {
+fun MainBody(
+    modifier: Modifier = Modifier,
+    onHabitacionClick: (Habitacion) -> Unit
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Banner()
-            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Habitaciones Disponibles",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
+
+        items(getHabitaciones()) { habitacion ->
+            HabitacionCard(
+                habitacion = habitacion,
+                onClick = { onHabitacionClick(habitacion) }
+            )
+        }
+
         item {
-            Text("Tus Próximas Reservas", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        items(listOf("Reserva 1", "Reserva 2", "Reserva 3")) { reservation ->
-            ReservationCard(reservation)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        item {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Servicios Destacados", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Servicios Destacados",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
-        items(listOf("Servicio 1", "Servicio 2", "Servicio 3", "Servicio 4")) { service ->
-            ServiceCard(service)
-            Spacer(modifier = Modifier.height(8.dp))
+
+        items(getServicios()) { servicio ->
+            ServicioCard(servicio)
         }
     }
 }
 
+data class Habitacion(
+    val nombre: String,
+    val descripcion: String,
+    val precio: Double,
+    val rating: Float
+)
+
+data class Servicio(
+    val nombre: String,
+    val descripcion: String,
+    val precio: Double,
+    val rating: Float
+)
+
+// Actualizar HabitacionCard para manejar clicks
 @Composable
-fun Banner() {
-    Box(
+fun HabitacionCard(
+    habitacion: Habitacion,
+    onClick: () -> Unit
+) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.banner),
-            contentDescription = "Banner",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        )
-        Text(
-            text = "Bienvenido a ReservaPlus",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(16.dp)
-        )
-    }
-}
-
-@Composable
-fun ReservationCard(reservation: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = reservation, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Fecha: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Servicio: Ejemplo de Servicio", style = MaterialTheme.typography.bodyMedium)
-            Button(
-                onClick = { /* TODO: Implement reservation details */ },
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                Text("Ver Detalles")
-            }
-        }
-    }
-}
-
-@Composable
-fun ServiceCard(service: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
-                painter = painterResource(id = R.drawable.service_placeholder),
-                contentDescription = service,
+                painter = painterResource(id = R.drawable.banner),
+                contentDescription = habitacion.nombre,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = service, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Descripción breve del servicio.", style = MaterialTheme.typography.bodyMedium)
-            Button(
-                onClick = { /* TODO: Implement service booking */ },
-                modifier = Modifier.align(Alignment.End)
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
             ) {
-                Text("Reservar")
+                Text(
+                    text = habitacion.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = habitacion.descripcion,
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(5) { index ->
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            tint = if (index < habitacion.rating) Color(0xFFFFC107) else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Text(
+                        text = "${habitacion.rating}",
+                        color = Color.Gray,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+            }
+
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "$${habitacion.precio}/noche",
+                    color = Color(0xFF57BDD3),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
         }
     }
 }
 
+@Composable
+fun ServicioCard(servicio: Servicio) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.banner),
+                contentDescription = servicio.nombre,
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
+            ) {
+                Text(
+                    text = servicio.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = servicio.descripcion,
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(5) { index ->
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            tint = if (index < servicio.rating) Color(0xFFFFC107) else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Text(
+                        text = "${servicio.rating}",
+                        color = Color.Gray,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+            }
+
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "$${servicio.precio}",
+                    color = Color(0xFF57BDD3),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+// Funciones auxiliares para datos de ejemplo
+private fun getHabitaciones(): List<Habitacion> {
+    return listOf(
+        Habitacion("Suite Presidencial", "Vista al mar, 2 habitaciones", 299.99, 4.8f),
+        Habitacion("Habitación Deluxe", "Vista a la ciudad", 199.99, 4.5f),
+        Habitacion("Suite Junior", "Balcón privado", 249.99, 4.7f)
+    )
+}
+
+private fun getServicios(): List<Servicio> {
+    return listOf(
+        Servicio("Spa Premium", "Masaje relajante de 60 min", 89.99, 4.9f),
+        Servicio("Restaurante Gourmet", "Cena para dos personas", 129.99, 4.6f),
+        Servicio("Gimnasio", "Acceso ilimitado", 19.99, 4.4f)
+    )
+}
