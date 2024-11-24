@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,14 +23,14 @@ import com.example.reservaplusapp.RegisterResponse
 import com.example.reservaplusapp.RetrofitInstance
 import retrofit2.Call
 import android.util.Log
-
+import retrofit2.Response
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterBody(
     modifier: Modifier = Modifier,
-    onRegisterClick: () -> Unit
+    onRegisterClick: (RegisterRequest) -> Unit
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -166,40 +167,20 @@ fun RegisterBody(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = {
-                val apiService = RetrofitInstance.api.create(ApiService::class.java)
-                val registerRequest = RegisterRequest(
-                    username = username,
-                    password1 = password,
-                    password2 = confirmPassword,
-                    first_name = firstName,
-                    last_name = lastName,
-                    email = email // Asegúrate de agregar un campo para capturar email
-                )
-
-                apiService.registerUser(registerRequest)
-                    .enqueue(object : retrofit2.Callback<RegisterResponse> {
-                        override fun onResponse(
-                            call: Call<RegisterResponse>,
-                            response: retrofit2.Response<RegisterResponse>
-                        ) {
-                            if (response.isSuccessful) {
-                                val registerResponse = response.body()
-                                Log.d("Register", "Registro exitoso: ${registerResponse?.message}")
-                            //println("Registro exitoso: ${registerResponse?.message}")
-                                // Aquí puedes mostrar un diálogo o navegar a otra pantalla
-                            } else {
-                                //println("Error en el registro: ${response.errorBody()?.string()}")
-                                Log.e("Register", "Error en el registro: ${response.errorBody()?.string()}")
-                                // Manejo de errores, muestra un Toast o un Snackbar
-                            }
-                        }
-
-                        override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
-                            println("Error de conexión: ${t.message}")
-
-                            // Manejo de error de conexión
-                        }
-                    })
+                if (password == confirmPassword) {
+                    val registerRequest = RegisterRequest(
+                        username = username,
+                        password1 = password,
+                        password2 = confirmPassword,
+                        first_name = firstName,
+                        last_name = lastName,
+                        email = email
+                    )
+                    onRegisterClick(registerRequest) // Invoca el callback
+                } else {
+                    // Manejo de error para contraseñas que no coinciden
+                    Log.e("Registro", "Las contraseñas no coinciden")
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(

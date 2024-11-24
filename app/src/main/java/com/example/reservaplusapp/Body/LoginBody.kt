@@ -25,12 +25,19 @@ import com.example.reservaplusapp.R
 @Composable
 fun LoginBody(
     modifier: Modifier = Modifier,
-    onLoginClick: () -> Unit
+    onLoginClick: (String, String) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val isLoginEnabled by remember(username, password) { mutableStateOf(enableLogin(username, password)) }
+    val isLoginEnabled by remember(username, password) {
+        mutableStateOf(
+            enableLogin(
+                username,
+                password
+            )
+        )
+    }
 
     Column(
         modifier = modifier.padding(16.dp),
@@ -96,7 +103,7 @@ fun LoginBody(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = onLoginClick,
+            onClick = { onLoginClick(username, password) },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,

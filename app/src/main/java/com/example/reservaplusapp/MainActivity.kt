@@ -21,6 +21,7 @@ import com.example.reservaplusapp.ui.theme.ReservaPlusAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        RetrofitInstance.initialize(this)
         setContent {
             MaterialTheme(
                 colorScheme = MaterialTheme.colorScheme.copy(
