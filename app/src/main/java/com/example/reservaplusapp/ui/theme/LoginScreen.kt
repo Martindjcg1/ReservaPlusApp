@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.example.reservaplusapp.ApiService
 import com.example.reservaplusapp.Background.BackgroundCanvas
 import com.example.reservaplusapp.Body.LoginBody
 import com.example.reservaplusapp.Footer.LoginFooter
@@ -16,8 +15,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import com.example.reservaplusapp.Header.LoginHeader
-import com.example.reservaplusapp.LoginRequest
-import com.example.reservaplusapp.LoginResponse
+import com.example.reservaplusapp.Clases.LoginRequest
+import com.example.reservaplusapp.Clases.LoginResponse
 import com.example.reservaplusapp.RetrofitInstance
 
 @Composable

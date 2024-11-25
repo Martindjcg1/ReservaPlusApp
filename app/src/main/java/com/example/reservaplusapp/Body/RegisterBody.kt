@@ -1,6 +1,5 @@
 package com.example.reservaplusapp.Body
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,14 +15,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.reservaplusapp.ApiService
 import com.example.reservaplusapp.R
-import com.example.reservaplusapp.RegisterRequest
-import com.example.reservaplusapp.RegisterResponse
-import com.example.reservaplusapp.RetrofitInstance
-import retrofit2.Call
+import com.example.reservaplusapp.Clases.RegisterRequest
 import android.util.Log
-import retrofit2.Response
 
 
 @OptIn(ExperimentalMaterial3Api::class)

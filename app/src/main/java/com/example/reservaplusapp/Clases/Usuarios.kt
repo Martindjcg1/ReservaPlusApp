@@ -1,4 +1,4 @@
-package com.example.reservaplusapp
+package com.example.reservaplusapp.Clases
 
 data class RegisterRequest(
     val username: String,

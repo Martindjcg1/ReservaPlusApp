@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.reservaplusapp.R
+import com.example.reservaplusapp.Clases.Servicio
 
 
 @Composable
@@ -70,12 +71,7 @@ data class Habitacion(
     val rating: Float
 )
 
-data class Servicio(
-    val nombre: String,
-    val descripcion: String,
-    val precio: Double,
-    val rating: Float
-)
+
 
 // Actualizar HabitacionCard para manejar clicks
 @Composable
@@ -198,12 +194,12 @@ fun ServicioCard(servicio: Servicio) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            tint = if (index < servicio.rating) Color(0xFFFFC107) else Color.Gray,
+                            //tint = if (index < servicio.rating) Color(0xFFFFC107) else Color.Gray,
                             modifier = Modifier.size(16.dp)
                         )
                     }
                     Text(
-                        text = "${servicio.rating}",
+                        text = "",
                         color = Color.Gray,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -236,8 +232,8 @@ private fun getHabitaciones(): List<Habitacion> {
 
 private fun getServicios(): List<Servicio> {
     return listOf(
-        Servicio("Spa Premium", "Masaje relajante de 60 min", 89.99, 4.9f),
-        Servicio("Restaurante Gourmet", "Cena para dos personas", 129.99, 4.6f),
-        Servicio("Gimnasio", "Acceso ilimitado", 19.99, 4.4f)
+        //Servicio("Spa Premium", "Masaje relajante de 60 min", 89.99, 4.9f),
+        //Servicio("Restaurante Gourmet", "Cena para dos personas", 129.99, 4.6f),
+        //Servicio("Gimnasio", "Acceso ilimitado", 19.99, 4.4f)
     )
 }

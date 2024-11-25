@@ -11,7 +11,7 @@ import com.example.reservaplusapp.Background.BackgroundCanvas
 import com.example.reservaplusapp.Body.RegisterBody
 import com.example.reservaplusapp.Footer.RegisterFooter
 import com.example.reservaplusapp.Header.RegisterHeader
-import com.example.reservaplusapp.RegisterResponse
+import com.example.reservaplusapp.Clases.RegisterResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
