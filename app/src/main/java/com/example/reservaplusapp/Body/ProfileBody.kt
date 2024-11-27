@@ -352,7 +352,7 @@ private fun ChangePasswordSection() {
 @Composable
 private fun BillingSection() {
 
-    Text("Facturación y Pagos - En desarrollo")
+    Text("Facturación y Pagos - En desarrollo ")
 }
 
 @Composable
