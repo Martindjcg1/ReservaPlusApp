@@ -83,8 +83,10 @@ dependencies {
     implementation (libs.coil.compose) // Usa la última versión estable
 
     implementation(libs.coil.compose)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.espresso.core)
 
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

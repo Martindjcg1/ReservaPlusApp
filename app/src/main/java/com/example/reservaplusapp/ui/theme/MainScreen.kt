@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.reservaplusapp.Body.Habitacion
 import com.example.reservaplusapp.Body.MainBody
+import com.example.reservaplusapp.Body.ProfileContent
 
 import com.example.reservaplusapp.Footer.MainFooter
 
@@ -537,12 +538,3 @@ fun ServicioCard(servicio: Servicio, modifier: Modifier = Modifier) {
 }
 //
 
-@Composable
-fun ProfileContent(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Text(
-            "Perfil",
-            modifier = Modifier.align(Alignment.Center)
-        )
-    }
-}
