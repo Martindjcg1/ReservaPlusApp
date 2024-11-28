@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -9,6 +10,7 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,76 +21,222 @@ import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.reservaplusapp.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileContent(modifier: Modifier = Modifier) {
-    var selectedSection by remember { mutableStateOf("Información Personal") }
+fun ProfileContent(
+    modifier: Modifier = Modifier,
+    navController: NavController? = null
+) {
+    var showSection by remember { mutableStateOf<String?>(null) }
 
-    Row(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(Color.White)
     ) {
-        // Left Sidebar
-        Card(
-            modifier = Modifier
-                .width(280.dp)
-                .fillMaxHeight()
-                .padding(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
+        if (showSection == null) {
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Profile Image and Email
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
+                // Profile Header with diagonal background
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
                 ) {
+                    // Diagonal background
+                    Canvas(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val path = Path().apply {
+                            moveTo(0f, 0f)
+                            lineTo(size.width, 0f)
+                            lineTo(size.width, size.height)
+                            lineTo(0f, size.height * 0.3f)
+                            close()
+                        }
+                        drawPath(
+                            path = path,
+                            color = Color(0xFF57BDD3)
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "martindjcg@gmail.com",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
+                    // Profile content
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Profile Image
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .border(2.dp, Color.White, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp),
+                                tint = Color(0xFF57BDD3)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Martin",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "martindjcg@gmail.com",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Divider()
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Navigation Menu
-                NavigationMenu(
-                    selectedSection = selectedSection,
-                    onSectionSelected = { selectedSection = it }
+                // Profile Options
+                ProfileOption(
+                    icon = Icons.Default.Person,
+                    text = "Información Personal",
+                    onClick = { showSection = "Información Personal" }
                 )
+                ProfileOption(
+                    icon = Icons.Default.Edit,
+                    text = "Editar Perfil",
+                    onClick = { showSection = "Cambiar Datos" }
+                )
+                ProfileOption(
+                    icon = Icons.Default.Lock,
+                    text = "Cambiar Contraseña",
+                    onClick = { showSection = "Cambiar contraseña" }
+                )
+                ProfileOption(
+                    icon = Icons.Default.ShoppingCart,
+                    text = "Facturación y Pagos",
+                    onClick = { showSection = "Facturación y Pagos" }
+                )
+                ProfileOption(
+                    icon = Icons.Default.DateRange,
+                    text = "Historial de Reservas",
+                    onClick = { showSection = "Historial de Reservas" }
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Logout Button
+                Button(
+                    onClick = { /* Handle logout */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar Sesión")
+                }
+            }
+        } else {
+            // Section Content with Back Button
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
+                // Top Bar with Back Button
+                TopAppBar(
+                    title = { Text(showSection ?: "") },
+                    navigationIcon = {
+                        IconButton(onClick = { showSection = null }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Regresar"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF57BDD3),
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    )
+                )
+
+                // Content
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (showSection) {
+                        "Información Personal" -> PersonalInfoSection()
+                        "Cambiar Datos" -> EditProfileSection()
+                        "Cambiar contraseña" -> ChangePasswordSection()
+                        "Facturación y Pagos" -> BillingSection()
+                        "Historial de Reservas" -> ReservationsHistorySection()
+                    }
+                }
             }
         }
-
-        // Main Content Area
-        Card(
+    }
+}
+@Composable
+private fun ProfileOption(
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
+                .fillMaxWidth()
                 .padding(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            when (selectedSection) {
-                "Información Personal" -> PersonalInfoSection()
-                "Cambiar Datos" -> EditProfileSection()
-                "Cambiar contraseña" -> ChangePasswordSection()
-                "Facturación y Pagos" -> BillingSection()
-                "Historial de Reservas" -> ReservationsHistorySection()
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color(0xFF57BDD3)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null,
+                tint = Color.Gray
+            )
         }
     }
 }
