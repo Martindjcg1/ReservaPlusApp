@@ -40,7 +40,7 @@ import com.example.reservaplusapp.Footer.MainFooter
 
 import com.example.reservaplusapp.Header.MainHeader
 import com.example.reservaplusapp.R
-import com.example.reservaplusapp.RetrofitInstance
+import com.example.reservaplusapp.Apis.RetrofitInstance
 import com.example.reservaplusapp.Clases.Servicio
 import com.google.gson.Gson
 import okhttp3.ResponseBody

@@ -1,8 +1,9 @@
-package com.example.reservaplusapp
+package com.example.reservaplusapp.Apis
 import com.example.reservaplusapp.Clases.LoginRequest
 import com.example.reservaplusapp.Clases.LoginResponse
 import com.example.reservaplusapp.Clases.RegisterRequest
 import com.example.reservaplusapp.Clases.RegisterResponse
+import com.example.reservaplusapp.Clases.UserProfileResponse
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -18,4 +19,8 @@ interface ApiService {
 
     @GET("HotelApp/api/servicios/")
     fun getServicios(): Call<ResponseBody>
+
+
+    @GET("Usuarios/api/profile/") // Cambia la ruta si es diferente
+    suspend fun getUserProfile(): UserProfileResponse
 }

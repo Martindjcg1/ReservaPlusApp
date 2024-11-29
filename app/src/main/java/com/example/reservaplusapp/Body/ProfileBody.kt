@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,12 +23,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.reservaplusapp.Clases.UserProfile
 import com.example.reservaplusapp.R
+import com.example.reservaplusapp.Apis.RetrofitInstance
+import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +209,7 @@ fun ProfileContent(
         }
     }
 }
+
 @Composable
 private fun ProfileOption(
     icon: ImageVector,
@@ -241,98 +249,80 @@ private fun ProfileOption(
     }
 }
 
-@Composable
-private fun NavigationMenu(
-    selectedSection: String,
-    onSectionSelected: (String) -> Unit
-) {
-    val sections = listOf(
-        "Información Personal" to Icons.Default.Person,
-        "Cambiar Datos" to Icons.Default.Edit,
-        "Cambiar contraseña" to Icons.Default.Lock,
-        "Facturación y Pagos" to Icons.Default.ShoppingCart,
-        "Historial de Reservas" to Icons.Default.Info
-    )
 
-    Column {
-        sections.forEach { (section, icon) ->
-            NavigationItem(
-                text = section,
-                icon = icon,
-                selected = selectedSection == section,
-                onClick = { onSectionSelected(section) }
-            )
+//
+class UserProfileViewModel : ViewModel() {
+
+    // Función para obtener el perfil del usuario
+    fun fetchUserProfile(context: Context, onResult: (UserProfile?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Hacer la llamada suspendida dentro de la coroutine
+                val response = RetrofitInstance.api.getUserProfile()
+                val userProfile = response.user // Acceder al objeto 'user'
+                onResult(userProfile) // Pasar el perfil al callback
+            } catch (e: Exception) {
+                // Manejar el error
+                onResult(null)
+            }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        NavigationItem(
-            text = "Cerrar Sesión",
-            icon = Icons.Default.ExitToApp,
-            selected = false,
-            onClick = { /* Handle logout */ },
-            textColor = Color.Red
-        )
     }
 }
+
 
 @Composable
-private fun NavigationItem(
-    text: String,
-    icon: ImageVector,
-    selected: Boolean,
-    onClick: () -> Unit,
-    textColor: Color = if (selected) MaterialTheme.colorScheme.primary else Color.Gray
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = textColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = textColor
-        )
+fun PersonalInfoSection() {
+    val context = LocalContext.current
+    val userProfile =
+        remember { mutableStateOf<UserProfile?>(null) } // Estado para almacenar el perfil
+    val isLoading = remember { mutableStateOf(true) }
+
+    // Acceder a ViewModel, para llamar a las funciones en un contexto coroutine.
+    val viewModel = viewModel<UserProfileViewModel>()
+
+    // Llamada asíncrona dentro de un LaunchedEffect
+    LaunchedEffect(Unit) {
+        // Llamar al método en el ViewModel
+        viewModel.fetchUserProfile(context) { profile ->
+            userProfile.value = profile
+            isLoading.value = false
+        }
+    }
+
+    if (isLoading.value) {
+        CircularProgressIndicator() // Muestra un indicador de carga
+    } else {
+        // Muestra la información del perfil una vez cargado
+        userProfile.value?.let { profile ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Información Personal",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Administra tu información personal.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Muestra los detalles del perfil
+                InfoField("Nombre", profile.first_name ?: "N/A")
+                InfoField("Apellido", profile.last_name ?: "N/A")
+                InfoField("Nombre de usuario", profile.username ?: "N/A")
+                InfoField("Correo Electrónico", profile.email ?: "N/A")
+                InfoField("Primer registro", profile.date_joined.toString())
+            }
+        }
     }
 }
 
-@Composable
-private fun PersonalInfoSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        Text(
-            text = "Información Personal",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Administra tu información personal, incluyendo el número de teléfono y correo electrónico donde podemos contactarte.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Personal Info Fields
-        InfoField("Nombre", "Martin")
-        InfoField("Correo Electrónico", "martindjcg@gmail.com")
-        InfoField("Última Actividad", "27 Nov 2024, 01:19")
-        InfoField("Fecha de Registro", "14 Nov 2024")
-    }
-}
 
 @Composable
 private fun InfoField(label: String, value: String) {
@@ -475,7 +465,10 @@ private fun ChangePasswordSection() {
             Text("• Mínimo 8 caracteres", style = MaterialTheme.typography.bodySmall)
             Text("• Al menos una letra mayúscula", style = MaterialTheme.typography.bodySmall)
             Text("• Al menos un número", style = MaterialTheme.typography.bodySmall)
-            Text("• Al menos un carácter especial (como @, #, $)", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "• Al menos un carácter especial (como @, #, $)",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
 

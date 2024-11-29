@@ -17,7 +17,7 @@ import retrofit2.Response
 import com.example.reservaplusapp.Header.LoginHeader
 import com.example.reservaplusapp.Clases.LoginRequest
 import com.example.reservaplusapp.Clases.LoginResponse
-import com.example.reservaplusapp.RetrofitInstance
+import com.example.reservaplusapp.Apis.RetrofitInstance
 
 @Composable
 fun LoginScreen(navController: NavController) {

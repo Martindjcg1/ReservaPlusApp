@@ -18,7 +18,7 @@ import retrofit2.Response
 import android.content.Context
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
-import com.example.reservaplusapp.RetrofitInstance
+import com.example.reservaplusapp.Apis.RetrofitInstance
 
 @Composable
 fun RegisterScreen(navController: NavController) {
