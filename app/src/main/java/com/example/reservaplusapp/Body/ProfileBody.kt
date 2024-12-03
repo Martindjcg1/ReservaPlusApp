@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -44,6 +45,7 @@ fun ProfileContent(
     navController: NavController? = null
 ) {
     var showSection by remember { mutableStateOf<String?>(null) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -51,7 +53,6 @@ fun ProfileContent(
             .background(Color.White)
     ) {
         if (showSection == null) {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -138,22 +139,12 @@ fun ProfileContent(
                     text = "Cambiar Contraseña",
                     onClick = { showSection = "Cambiar contraseña" }
                 )
-                ProfileOption(
-                    icon = Icons.Default.ShoppingCart,
-                    text = "Facturación y Pagos",
-                    onClick = { showSection = "Facturación y Pagos" }
-                )
-                ProfileOption(
-                    icon = Icons.Default.DateRange,
-                    text = "Historial de Reservas",
-                    onClick = { showSection = "Historial de Reservas" }
-                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Logout Button
                 Button(
-                    onClick = { /* Handle logout */ },
+                    onClick = { showLogoutDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 32.dp),
@@ -201,12 +192,41 @@ fun ProfileContent(
                         "Información Personal" -> PersonalInfoSection()
                         "Cambiar Datos" -> EditProfileSection()
                         "Cambiar contraseña" -> ChangePasswordSection()
-                        "Facturación y Pagos" -> BillingSection()
-                        "Historial de Reservas" -> ReservationsHistorySection()
                     }
                 }
             }
         }
+    }
+
+    // Logout Confirmation Dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Cerrar Sesión") },
+            text = { Text("¿Estás seguro que deseas cerrar sesión?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        // Navigate to login screen
+                        navController?.navigate("login") {
+                            popUpTo(0) // Clear the back stack
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Sí, cerrar sesión")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showLogoutDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
@@ -241,7 +261,7 @@ private fun ProfileOption(
             )
             Spacer(modifier = Modifier.weight(1f))
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.Default.ArrowForward,
                 contentDescription = null,
                 tint = Color.Gray
             )
@@ -249,80 +269,68 @@ private fun ProfileOption(
     }
 }
 
-
-//
 class UserProfileViewModel : ViewModel() {
-
-    // Función para obtener el perfil del usuario
-    fun fetchUserProfile(context: Context, onResult: (UserProfile?) -> Unit) {
+    fun fetchUserProfile(onResult: (UserProfile?) -> Unit) {
         viewModelScope.launch {
             try {
-                // Hacer la llamada suspendida dentro de la coroutine
                 val response = RetrofitInstance.api.getUserProfile()
-                val userProfile = response.user // Acceder al objeto 'user'
-                onResult(userProfile) // Pasar el perfil al callback
+                val userProfile = response.user
+                onResult(userProfile)
             } catch (e: Exception) {
-                // Manejar el error
                 onResult(null)
             }
         }
     }
 }
 
-
 @Composable
 fun PersonalInfoSection() {
-    val context = LocalContext.current
-    val userProfile =
-        remember { mutableStateOf<UserProfile?>(null) } // Estado para almacenar el perfil
-    val isLoading = remember { mutableStateOf(true) }
+    val viewModel: UserProfileViewModel = viewModel()
+    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    // Acceder a ViewModel, para llamar a las funciones en un contexto coroutine.
-    val viewModel = viewModel<UserProfileViewModel>()
-
-    // Llamada asíncrona dentro de un LaunchedEffect
     LaunchedEffect(Unit) {
-        // Llamar al método en el ViewModel
-        viewModel.fetchUserProfile(context) { profile ->
-            userProfile.value = profile
-            isLoading.value = false
+        viewModel.fetchUserProfile { profile ->
+            userProfile = profile
+            isLoading = false
         }
     }
 
-    if (isLoading.value) {
-        CircularProgressIndicator() // Muestra un indicador de carga
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
     } else {
-        // Muestra la información del perfil una vez cargado
-        userProfile.value?.let { profile ->
-            Column(
+        userProfile?.let { profile ->
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(24.dp)
             ) {
-                Text(
-                    text = "Información Personal",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Administra tu información personal.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(32.dp))
+                item {
+                    Text(
+                        text = "Información Personal",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Administra tu información personal.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
 
-                // Muestra los detalles del perfil
-                InfoField("Nombre", profile.first_name ?: "N/A")
-                InfoField("Apellido", profile.last_name ?: "N/A")
-                InfoField("Nombre de usuario", profile.username ?: "N/A")
-                InfoField("Correo Electrónico", profile.email ?: "N/A")
-                InfoField("Primer registro", profile.date_joined.toString())
+                item { InfoField("Nombre", profile.first_name ?: "N/A") }
+                item { InfoField("Apellido", profile.last_name ?: "N/A") }
+                item { InfoField("Nombre de usuario", profile.username ?: "N/A") }
+                item { InfoField("Correo Electrónico", profile.email ?: "N/A") }
+                item { InfoField("Primer registro", profile.date_joined.toString()) }
             }
         }
     }
 }
-
 
 @Composable
 private fun InfoField(label: String, value: String) {
@@ -340,6 +348,7 @@ private fun InfoField(label: String, value: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditProfileSection() {
     var nombre by remember { mutableStateOf("") }
@@ -405,6 +414,7 @@ private fun EditProfileSection() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChangePasswordSection() {
     var currentPassword by remember { mutableStateOf("") }
@@ -465,10 +475,7 @@ private fun ChangePasswordSection() {
             Text("• Mínimo 8 caracteres", style = MaterialTheme.typography.bodySmall)
             Text("• Al menos una letra mayúscula", style = MaterialTheme.typography.bodySmall)
             Text("• Al menos un número", style = MaterialTheme.typography.bodySmall)
-            Text(
-                "• Al menos un carácter especial (como @, #, $)",
-                style = MaterialTheme.typography.bodySmall
-            )
+            Text("• Al menos un carácter especial (como @, #, $)", style = MaterialTheme.typography.bodySmall)
         }
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -482,7 +489,7 @@ private fun ChangePasswordSection() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* Mamadas para guardar la contra */ },
+            onClick = { /* Implementar cambio de contraseña */ },
             modifier = Modifier.align(Alignment.Start)
         ) {
             Text("Cambiar Contraseña")
@@ -490,14 +497,3 @@ private fun ChangePasswordSection() {
     }
 }
 
-@Composable
-private fun BillingSection() {
-
-    Text("Facturación y Pagos - En desarrollo ")
-}
-
-@Composable
-private fun ReservationsHistorySection() {
-
-    Text("Historial de Reservas - En desarrollo")
-}

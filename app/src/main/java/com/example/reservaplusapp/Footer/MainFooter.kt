@@ -27,12 +27,7 @@ fun MainFooter(selectedTab: Int, onTabSelected: (Int) -> Unit) {
             selected = selectedTab == 0,
             onClick = { onTabSelected(0) }
         )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            label = { Text("Buscar") },
-            selected = selectedTab == 1,
-            onClick = { onTabSelected(1) }
-        )
+
         NavigationBarItem(
             icon = {
                 Icon(
@@ -44,23 +39,23 @@ fun MainFooter(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                 )
             },
             label = { Text("Reservas") },
-            selected = selectedTab == 2,
-            onClick = { onTabSelected(2) }
+            selected = selectedTab == 1,
+            onClick = { onTabSelected(1) }
         )
 
 
         NavigationBarItem(
             icon = { Icon(Icons.Default.ThumbUp, contentDescription = "Servicios") },
             label = { Text("Servicios") },
-            selected = selectedTab == 3,
-            onClick = { onTabSelected(3) }
+            selected = selectedTab == 2,
+            onClick = { onTabSelected(2) }
         )
 
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
             label = { Text("Perfil") },
-            selected = selectedTab == 4,
-            onClick = { onTabSelected(4) }
+            selected = selectedTab == 3,
+            onClick = { onTabSelected(3) }
         )
     }
 }

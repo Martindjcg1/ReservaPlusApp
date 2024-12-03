@@ -52,7 +52,14 @@ android {
 }
 
 dependencies {
+    // Sheets Compose Dialogs - Core
+    implementation ("com.maxkeppeler.sheets-compose-dialogs:core:1.0.2")
 
+    // Sheets Compose Dialogs - Calendar
+    implementation ("com.maxkeppeler.sheets-compose-dialogs:calendar:1.0.2")
+
+    // Coil para cargar imágenes de forma asíncrona
+    implementation ("io.coil-kt:coil-compose:2.2.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
