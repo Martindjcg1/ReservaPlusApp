@@ -1,6 +1,8 @@
 package com.example.reservaplusapp.Body
 
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +39,14 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reservaplusapp.Clases.PasswordChangeRequest
+import com.example.reservaplusapp.Clases.PasswordChangeResponse
+import com.example.reservaplusapp.Clases.UpdateProfileRequest
+import com.example.reservaplusapp.Clases.UpdateProfileResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.HttpException
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +56,7 @@ fun ProfileContent(
 ) {
     var showSection by remember { mutableStateOf<String?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-
+    val viewModel: UserProfileViewModel = viewModel()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -190,7 +200,7 @@ fun ProfileContent(
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (showSection) {
                         "Información Personal" -> PersonalInfoSection()
-                        "Cambiar Datos" -> EditProfileSection()
+                        "Cambiar Datos" -> EditProfileSection(viewModel = viewModel)
                         "Cambiar contraseña" -> ChangePasswordSection()
                     }
                 }
@@ -281,6 +291,30 @@ class UserProfileViewModel : ViewModel() {
             }
         }
     }
+
+    fun updateUserProfile(
+        request: UpdateProfileRequest,
+        onSuccess: (UpdateProfileResponse) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response: Response<UpdateProfileResponse> =
+                    RetrofitInstance.api.updateUserProfile(request)
+                if (response.isSuccessful) {
+                    response.body()?.let { onSuccess(it) }
+                } else {
+                    onError("Error al actualizar el perfil: ${response.errorBody()?.string()}")
+                }
+            } catch (e: HttpException) {
+                onError("Error al conectar con el servidor: ${e.message()}")
+            } catch (e: Exception) {
+                onError("Error inesperado: ${e.message}")
+            }
+        }
+    }
+
+
 }
 
 @Composable
@@ -348,68 +382,128 @@ private fun InfoField(label: String, value: String) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-private fun EditProfileSection() {
+fun EditProfileSection(viewModel: UserProfileViewModel) {
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var usuario by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        Text(
-            text = "Editar Información Personal",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Actualiza los datos de tu cuenta.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(32.dp))
+    // Cargar los datos actuales del usuario
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserProfile { profile ->
+            if (profile != null) {
+                nombre = profile.first_name ?: ""
+                apellido = profile.last_name ?: ""
+                usuario = profile.username ?: ""
+                email = profile.email ?: ""
+            }
+            isLoading = false
+        }
+    }
 
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = apellido,
-            onValueChange = { apellido = it },
-            label = { Text("Apellido") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = usuario,
-            onValueChange = { usuario = it },
-            label = { Text("Nombre de usuario") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo Electrónico") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { /* Handle save changes */ },
-            modifier = Modifier.align(Alignment.Start)
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
-            Text("Guardar Cambios")
+            Text(
+                text = "Editar Información Personal",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Actualiza los datos de tu cuenta.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = apellido,
+                onValueChange = { apellido = it },
+                label = { Text("Apellido") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = usuario,
+                onValueChange = { usuario = it },
+                label = { Text("Nombre de usuario") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Correo Electrónico") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            successMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Green,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            Button(
+                onClick = {
+                    isLoading = true
+                    successMessage = null
+                    errorMessage = null
+
+                    val request = UpdateProfileRequest(
+                        username = usuario,
+                        first_name = nombre,
+                        last_name = apellido,
+                        email = email
+                    )
+
+                    viewModel.updateUserProfile(request,
+                        onSuccess = { response ->
+                            isLoading = false
+                            successMessage = response.message
+                        },
+                        onError = { error ->
+                            isLoading = false
+                            errorMessage = error
+                        }
+                    )
+                },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Text("Guardar Cambios")
+            }
         }
     }
 }
@@ -489,11 +583,51 @@ private fun ChangePasswordSection() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* Implementar cambio de contraseña */ },
+            onClick = { if (newPassword == confirmPassword) {
+                // Llamar a la función para cambiar la contraseña
+                changePassword(currentPassword, newPassword)
+            } else {
+                // Mostrar mensaje de error si las contraseñas no coinciden
+                //Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                Log.e("Cambio de Contraseña","No coincideen las contraseñas")
+            } },
             modifier = Modifier.align(Alignment.Start)
         ) {
             Text("Cambiar Contraseña")
         }
     }
 }
+
+fun changePassword(currentPassword: String, newPassword: String) {
+    // Crear el objeto de solicitud
+    val passwordChangeRequest = PasswordChangeRequest(
+        old_password = currentPassword,
+        new_password = newPassword
+    )
+
+    // Hacer la solicitud a la API utilizando Retrofit
+    val call = RetrofitInstance.api.changePassword(passwordChangeRequest)
+
+    call.enqueue(object : Callback<PasswordChangeResponse> {
+        override fun onResponse(
+            call: Call<PasswordChangeResponse>,
+            response: Response<PasswordChangeResponse>
+        ) {
+            if (response.isSuccessful) {
+                // Mostrar mensaje de éxito
+                Log.e("Cambio de Contraseña","Awebo si Jalo")
+            } else {
+                // Mostrar error
+                Log.e("Cambio de Contraseña","Chale")
+
+            }
+        }
+
+        override fun onFailure(call: Call<PasswordChangeResponse>, t: Throwable) {
+            // Mostrar error de conexión
+            Log.e("Cambio de Contraseña","Error dee conexion")
+        }
+    })
+}
+
 

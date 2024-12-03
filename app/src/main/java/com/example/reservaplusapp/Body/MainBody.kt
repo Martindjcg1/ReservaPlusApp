@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,221 +26,147 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.reservaplusapp.Clases.Servicio
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import com.example.reservaplusapp.Apis.RetrofitInstance
+import com.example.reservaplusapp.Clases.ReservaInfo
 import com.example.reservaplusapp.R
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.livedata.observeAsState
+import coil.compose.AsyncImage
+import com.example.reservaplusapp.Clases.Habitacion
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 @Composable
 fun MainBody(
     modifier: Modifier = Modifier,
-    onHabitacionClick: (Habitacion) -> Unit
+    reservasViewModel: ReservasViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        reservasViewModel.fetchReservas()
+    }
+
+    // Obtén las reservas del ViewModel
+    val reservas = reservasViewModel.reservasList.value
+    Log.e("resulatdo",reservas.toString())
+
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp)
     ) {
-        item {
-            Text(
-                "Habitaciones Disponibles",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        items(getHabitaciones()) { habitacion ->
-            HabitacionCard(
-                habitacion = habitacion,
-                onClick = { onHabitacionClick(habitacion) }
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Servicios Destacados",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        items(getServicios()) { servicio ->
-            ServicioCard(servicio)
+        if (reservas.isEmpty()) {
+            item {
+                Text("No se encontraron reservas.", modifier = Modifier.fillMaxWidth())
+            }
+        } else {
+            items(reservas) { reservaInfo ->
+                ReservaItem(reservaInfo)
+            }
         }
     }
 }
 
-data class Habitacion(
-    val nombre: String,
-    val descripcion: String,
-    val precio: Double,
-    val rating: Float
-)
-
-
-
-// Actualizar HabitacionCard para manejar clicks
 @Composable
-fun HabitacionCard(
-    habitacion: Habitacion,
-    onClick: () -> Unit
-) {
+fun ReservaItem(reservaInfo: ReservaInfo) {
+    val reserva = reservaInfo.reserva
+    val habitaciones = reservaInfo.habitaciones
+    val servicios = reservaInfo.servicios
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(8.dp),
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.banner),
-                contentDescription = habitacion.nombre,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+            // Información de la reserva
+            Text(
+                text = "Reserva del ${reserva.fecha_inicio_reserva} al ${reserva.fecha_final_reserva}",
+
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Número de Habitación: ${reserva.Numero_de_habitacion}"
+
             )
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp)
-            ) {
-                Text(
-                    text = habitacion.nombre,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = habitacion.descripcion,
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Habitaciones asociadas
+            habitaciones.forEach { habitacionInfo ->
+                val habitacion = habitacionInfo.habitacion
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    repeat(5) { index ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = if (index < habitacion.rating) Color(0xFFFFC107) else Color.Gray,
-                            modifier = Modifier.size(16.dp)
+                    // Imagen de la habitación
+                    AsyncImage(
+                        model = habitacion.imagen_slug,
+                        contentDescription = "Imagen de Habitación",
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = "Personas: ${habitacion.personas}",
+
                         )
                     }
-                    Text(
-                        text = "${habitacion.rating}",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
                 }
             }
 
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Servicios asociados
+            if (servicios.isNotEmpty()) {
                 Text(
-                    text = "$${habitacion.precio}/noche",
-                    color = Color(0xFF57BDD3),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    text = "Servicios:",
+
+                    fontWeight = FontWeight.Bold
                 )
+                servicios.forEach { servicio ->
+                    Text(
+                        text = "Servicio: ${servicio.nombre_servicio}",
+
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-fun ServicioCard(servicio: Servicio) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.banner),
-                contentDescription = servicio.nombre,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp)
-            ) {
-                Text(
-                    text = servicio.nombre,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = servicio.descripcion,
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(5) { index ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            //tint = if (index < servicio.rating) Color(0xFFFFC107) else Color.Gray,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    Text(
-                        text = "",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
+class ReservasViewModel : ViewModel() {
+    var reservasList = mutableStateOf<List<ReservaInfo>>(emptyList())
+        private set
+
+    fun fetchReservas() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getReservas()
+                if (response.isSuccessful) {
+                    reservasList.value = response.body()?.reservas_info ?: emptyList()
+                } else {
+                    Log.e("ReservasViewModel", "Error: ${response.code()} - ${response.message()}")
                 }
-            }
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "$${servicio.precio}",
-                    color = Color(0xFF57BDD3),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+            } catch (e: Exception) {
+                Log.e("ReservasViewModel", "Exception: ${e.message}")
             }
         }
     }
 }
 
-// Funciones auxiliares para datos de ejemplo
-private fun getHabitaciones(): List<Habitacion> {
-    return listOf(
-        Habitacion("Suite Presidencial", "Vista al mar, 2 habitaciones", 299.99, 4.8f),
-        Habitacion("Habitación Deluxe", "Vista a la ciudad", 199.99, 4.5f),
-        Habitacion("Suite Junior", "Balcón privado", 249.99, 4.7f)
-    )
-}
 
-private fun getServicios(): List<Servicio> {
-    return listOf(
-        //Servicio("Spa Premium", "Masaje relajante de 60 min", 89.99, 4.9f),
-        //Servicio("Restaurante Gourmet", "Cena para dos personas", 129.99, 4.6f),
-        //Servicio("Gimnasio", "Acceso ilimitado", 19.99, 4.4f)
-    )
-}
+
+
+

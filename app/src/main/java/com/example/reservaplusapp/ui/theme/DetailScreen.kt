@@ -25,12 +25,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.reservaplusapp.Body.Habitacion
 import com.example.reservaplusapp.R
 
 @Composable
 fun DetailScreen(
-    habitacion: Habitacion,
+    //habitacion: Habitacion,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,7 +54,7 @@ fun DetailScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.banner),
-                        contentDescription = habitacion.nombre,
+                        contentDescription = "",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -87,7 +86,7 @@ fun DetailScreen(
                             Icon(
                                 Icons.Default.Star,
                                 contentDescription = null,
-                                tint = if (index < habitacion.rating) Color(0xFFFFC107) else Color.Gray,
+                                //tint = if (index < habitacion.rating) Color(0xFFFFC107) else Color.Gray,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -96,7 +95,7 @@ fun DetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = habitacion.nombre,
+                        text = "",//habitacion.nombre,
                         color = Color.White,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
@@ -105,7 +104,7 @@ fun DetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = habitacion.descripcion,
+                        text = "",//habitacion.descripcion,
                         color = Color.Gray,
                         fontSize = 16.sp
                     )

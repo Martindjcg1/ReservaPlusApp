@@ -47,3 +47,26 @@ data class UserProfile(
     val last_name: String? = null,
     val date_joined:String?=null
 )
+
+data class UpdateProfileRequest(
+    val username: String?,
+    val first_name: String?,
+    val last_name: String?,
+    val email: String?
+)
+
+data class UpdateProfileResponse(
+    val message: String,
+    val user: UserProfile
+)
+
+data class PasswordChangeRequest(
+    val old_password: String,
+    val new_password: String
+)
+
+data class PasswordChangeResponse(
+    val message: String
+)
+
+

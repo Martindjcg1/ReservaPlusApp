@@ -9,3 +9,9 @@ data class Servicio(
     val precio: Double,
     val slug: String
 )
+
+data class ServicioInfo(
+    val id: Int,
+    val servicio: Int,
+    val nombre_servicio: String
+)

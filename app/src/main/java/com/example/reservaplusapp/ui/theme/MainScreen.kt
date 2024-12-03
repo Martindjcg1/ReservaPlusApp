@@ -45,14 +45,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.reservaplusapp.Body.Habitacion
 import com.example.reservaplusapp.Body.MainBody
 import com.example.reservaplusapp.Body.ProfileContent
 import com.example.reservaplusapp.Body.ReservasContent
 import com.example.reservaplusapp.Body.ServiciosContent
-
 import com.example.reservaplusapp.Footer.MainFooter
-
 import com.example.reservaplusapp.Header.MainHeader
 import com.example.reservaplusapp.R
 import com.example.reservaplusapp.Apis.RetrofitInstance
@@ -140,9 +137,7 @@ fun MainScreen(navController: NavController) {
         when (currentScreen) {
             is Screen.Home -> MainBody(
                 modifier = Modifier.padding(paddingValues),
-                onHabitacionClick = { habitacion ->
-                    currentScreen = Screen.Detail(habitacion)
-                }
+
             )
             is Screen.TusReservas -> ReservasContent(
                 modifier = Modifier.padding(paddingValues),
@@ -150,11 +145,11 @@ fun MainScreen(navController: NavController) {
             )
             is Screen.Servicios -> ServiciosContent(Modifier.padding(paddingValues))
             is Screen.Profile -> ProfileContent(Modifier.padding(paddingValues))
-            is Screen.Detail -> DetailScreen(
-                habitacion = (currentScreen as Screen.Detail).habitacion,
+            /*is Screen.Detail -> DetailScreen(
+
                 onBackClick = { currentScreen = Screen.Home },
                 modifier = Modifier.padding(paddingValues)
-            )
+            )*/
 
             Screen.Search -> TODO()
         }
