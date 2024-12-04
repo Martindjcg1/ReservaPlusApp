@@ -1,7 +1,6 @@
 package com.example.reservaplusapp.ui.theme
 
 
-
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -44,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavType
 import coil.compose.rememberAsyncImagePainter
 import com.example.reservaplusapp.Body.MainBody
 import com.example.reservaplusapp.Body.ProfileContent
@@ -53,22 +54,31 @@ import com.example.reservaplusapp.Footer.MainFooter
 import com.example.reservaplusapp.Header.MainHeader
 import com.example.reservaplusapp.R
 import com.example.reservaplusapp.Apis.RetrofitInstance
+import com.example.reservaplusapp.Body.DetallesHabitacionScreen
+import com.example.reservaplusapp.Body.HabitacionesScreen
 import com.example.reservaplusapp.Clases.Servicio
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDate
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController) {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
     var selectedTab by remember { mutableStateOf(0) }
     var showNotifications by remember { mutableStateOf(false) }
     var notifications by remember { mutableStateOf(listOf("Nueva reserva disponible", "¡Oferta especial!")) }
+
+    // Asegúrate de que el controlador de navegación sea del tipo adecuado
+    val navHostController = rememberNavController()
 
     Scaffold(
         topBar = {
@@ -123,38 +133,68 @@ fun MainScreen(navController: NavController) {
                 selectedTab = selectedTab,
                 onTabSelected = {
                     selectedTab = it
-                    currentScreen = when (it) {
-                        0 -> Screen.Home
-                        1 -> Screen.TusReservas
-                        2 -> Screen.Servicios
-                        3 -> Screen.Profile
-                        else -> Screen.Home
+                    // Actualizamos el NavHostController para ir a la pantalla correspondiente
+                    when (it) {
+                        0 -> navHostController.navigate("home")
+                        1 -> navHostController.navigate("reservas")
+                        2 -> navHostController.navigate("servicios")
+                        3 -> navHostController.navigate("profile")
                     }
                 }
             )
         }
     ) { paddingValues ->
-        when (currentScreen) {
-            is Screen.Home -> MainBody(
-                modifier = Modifier.padding(paddingValues),
+        NavHost(
+            navController = navHostController,
+            startDestination = "home"
+        ) {
+            composable("home") {
+                MainBody(modifier = Modifier.padding(paddingValues))
+            }
+            composable("reservas") {
+                ReservasContent(modifier = Modifier.padding(paddingValues),
+                    navController = navHostController)
+            }
+            composable("servicios") {
+                ServiciosContent(modifier = Modifier.padding(paddingValues))
+            }
+            composable("profile") {
+                ProfileContent(modifier = Modifier.padding(paddingValues))
+            }
+            // Aquí añadimos la ruta dinámica para habitaciones
+            composable(
+                "habitaciones/{startDate}/{endDate}",
+                arguments = listOf(
+                    navArgument("startDate") { type = NavType.StringType },
+                    navArgument("endDate") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val startDateString = backStackEntry.arguments?.getString("startDate")
+                val endDateString = backStackEntry.arguments?.getString("endDate")
 
-            )
-            is Screen.TusReservas -> ReservasContent(
-                modifier = Modifier.padding(paddingValues),
-                navController = navController
-            )
-            is Screen.Servicios -> ServiciosContent(Modifier.padding(paddingValues))
-            is Screen.Profile -> ProfileContent(Modifier.padding(paddingValues))
-            /*is Screen.Detail -> DetailScreen(
+                // Convertir las fechas de String a LocalDate
+                val startDate = LocalDate.parse(startDateString)
+                val endDate = LocalDate.parse(endDateString)
 
-                onBackClick = { currentScreen = Screen.Home },
-                modifier = Modifier.padding(paddingValues)
-            )*/
 
-            Screen.Search -> TODO()
+                HabitacionesScreen(startDate = startDate, endDate = endDate,
+                    navController = navHostController  )
+            }
+            composable(
+                route = "detalles/{id}/{startDate}/{endDate}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.IntType },
+                    navArgument("startDate") { type = NavType.StringType },
+                    navArgument("endDate") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getInt("id") ?: 0
+                val startDate = LocalDate.parse(backStackEntry.arguments?.getString("startDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                DetallesHabitacionScreen(id, startDate, endDate, navController)
+            }
         }
     }
-
     if (showNotifications) {
         NotificationsDialog(
             notifications = notifications,
@@ -165,8 +205,6 @@ fun MainScreen(navController: NavController) {
         )
     }
 }
-
-
 
 
 @Composable

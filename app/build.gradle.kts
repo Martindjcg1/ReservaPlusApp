@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.reservaplusapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -103,5 +103,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation ("androidx.navigation:navigation-compose:2.6.0")  // Verifica la versión
+    implementation ("androidx.compose.material3:material3:1.1.0" )   // Verifica la versión
 
 }
