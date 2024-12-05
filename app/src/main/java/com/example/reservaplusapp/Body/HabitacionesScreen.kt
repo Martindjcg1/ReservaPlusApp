@@ -1,11 +1,16 @@
 package com.example.reservaplusapp.Body
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,104 +20,86 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.reservaplusapp.Apis.ApiService
+import com.example.reservaplusapp.Clases.Habitaciones
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import com.example.reservaplusapp.Apis.RetrofitInstance
+import java.time.format.DateTimeFormatter
 
-data class HabitacionesDisponibles(
-    val id: Int,
-    val nombre: String,
-    val ubicacion: String,
-    val precio: Double,
-    val imagen: String,
-    val descripcion: String,
-    val cupo: Int,
-    val caracteristicas: Map<String, String>
-)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitacionesScreen(
     startDate: LocalDate,
     endDate: LocalDate,
     navController: NavController,
+    viewModel: HabitacionesViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val habitaciones = remember {
-        listOf(
-            HabitacionesDisponibles(
-                id = 1,
-                nombre = "Habitación lujosa",
-                ubicacion = "San Pedro Cahro Michoacán",
-                precio = 1500.00,
-                imagen = "https://example.com/imagen_habitacion_lujosa.jpg",
-                descripcion = "Habitación de lujo con todas las comodidades",
-                cupo = 4,
-                caracteristicas = mapOf(
-                    "Jacuzzi" to "Sí",
-                    "Ventanas" to "2",
-                    "Camas" to "Camas cómodas",
-                    "Aire Acondicionado" to "Sí"
-                )
-            ),
-            HabitacionesDisponibles(
-                id = 2,
-                nombre = "Habitación económica",
-                ubicacion = "Jiquilpan",
-                precio = 500.00,
-                imagen = "https://example.com/imagen_habitacion_economica.jpg",
-                descripcion = "Habitación económica con lo básico",
-                cupo = 2,
-                caracteristicas = mapOf(
-                    "Ventanas" to "1",
-                    "Camas" to "Cama Individual",
-                    "Aire Acondicionado" to "No"
-                )
-            ),
-            HabitacionesDisponibles(
-                id = 3,
-                nombre = "Habitación 5 estrellas",
-                ubicacion = "Jiquilpan",
-                precio = 1200.00,
-                imagen = "https://example.com/imagen_habitacion_5_estrellas.jpg",
-                descripcion = "Habitación de lujo con vista panorámica",
-                cupo = 3,
-                caracteristicas = mapOf(
-                    "Jacuzzi" to "Sí",
-                    "Ventanas" to "3",
-                    "Camas" to "Cama King Size",
-                    "Aire Acondicionado" to "Sí"
-                )
-            )
-        )
+
+    val habitaciones by viewModel.habitacionesResponse
+    val isLoading by viewModel.isLoading
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchHabitaciones(startDate, endDate)
     }
+    Box(modifier = modifier.fillMaxSize()) {
+        when {
+            isLoading -> {
+                // Mostrar un indicador de carga
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color(0xFF57BDD3)
+                )
+            }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Text(
-                text = "Habitaciones Disponibles",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF57BDD3),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
+            habitaciones.isNullOrEmpty() -> {
+                // Mostrar mensaje cuando no hay habitaciones
+                Text(
+                    text = "No hay habitaciones disponibles.",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
-        items(habitaciones) { habitacion ->
-            HabitacionCard(
-                habitacion = habitacion,
-                startDate = startDate,
-                endDate = endDate,
-                onVerDetalles = {
-                    navController.navigate(
-                        "detalles/${habitacion.id}/${startDate}/${endDate}"
-                    )
+            else -> {
+                // Mostrar la lista de habitaciones
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = "Habitaciones Disponibles",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF57BDD3),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    items(habitaciones!!) { habitacion ->
+                        HabitacionCard(
+                            habitacion = habitacion,
+                            startDate = startDate, // Pasar la fecha de inicio recibida en el composable principal
+                            endDate = endDate,     // Pasar la fecha de fin recibida en el composable principal
+                            onVerDetalles = {
+                                navController.navigate("detalle") // Implementar detalles más adelante
+                            }
+                        )
+                    }
                 }
-            )
+            }
         }
     }
 }
@@ -120,7 +107,7 @@ fun HabitacionesScreen(
 
 @Composable
 fun HabitacionCard(
-    habitacion: HabitacionesDisponibles,
+    habitacion: Habitaciones, // Modelo que incluye los datos de nombre, precio, cupo y slug
     startDate: LocalDate,
     endDate: LocalDate,
     onVerDetalles: () -> Unit,
@@ -131,7 +118,7 @@ fun HabitacionCard(
             .fillMaxWidth()
             .padding(8.dp),
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Corregido aquí
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
@@ -140,11 +127,11 @@ fun HabitacionCard(
         ) {
             // Imagen de la habitación
             AsyncImage(
-                model = habitacion.imagen,
-                contentDescription = "Imagen de la ${habitacion.nombre}",
+                model = habitacion.slug, // URL de la imagen desde el atributo slug
+                contentDescription = "Imagen de la habitación",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(180.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -158,18 +145,22 @@ fun HabitacionCard(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+
             Text(
-                text = habitacion.ubicacion,
+                text = "Precio: $${habitacion.precio}",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "Precio por noche: \$${habitacion.precio}",
+                text = "Cupo: ${habitacion.cupo} personas",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF57BDD3)
+                color = Color.Gray
             )
+
+
+
+
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -178,7 +169,7 @@ fun HabitacionCard(
                 onClick = onVerDetalles,
                 modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF57BDD3) // Actualizado
+                    containerColor = Color(0xFF57BDD3)
                 )
             ) {
                 Text(
@@ -189,3 +180,39 @@ fun HabitacionCard(
         }
     }
 }
+
+class HabitacionesViewModel : ViewModel() {
+    private val _habitacionesResponse = mutableStateOf<List<Habitaciones>?>(null)
+    val habitacionesResponse: State<List<Habitaciones>?> = _habitacionesResponse
+
+    private val _isLoading = mutableStateOf(false)
+    val isLoading: State<Boolean> = _isLoading
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun fetchHabitaciones(startDate: LocalDate, endDate: LocalDate) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+                val formattedStartDate = startDate.format(formatter)
+                val formattedEndDate = endDate.format(formatter)
+                Log.d("Fecha de inicio",formattedStartDate)
+                Log.d("Fecha de termminacion",formattedEndDate)
+
+                // Llamar a RetrofitInstance.api
+                val response = RetrofitInstance.api.getHabitacionesDisponibles(
+                    formattedStartDate,
+                    formattedEndDate
+                )
+
+                _habitacionesResponse.value = response.habitacionesDisponibles
+            } catch (e: Exception) {
+                // Maneja errores aquí
+                _habitacionesResponse.value = emptyList()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+}
+

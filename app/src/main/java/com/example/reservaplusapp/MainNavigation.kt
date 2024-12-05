@@ -1,5 +1,7 @@
 package com.example.reservaplusapp
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 
 import androidx.navigation.compose.NavHost
@@ -12,6 +14,7 @@ import com.example.reservaplusapp.ui.theme.SplashScreen
 
 import com.example.reservaplusapp.ui.theme.MainScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()

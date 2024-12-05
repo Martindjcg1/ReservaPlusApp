@@ -1,5 +1,8 @@
 package com.example.reservaplusapp.Apis
 
+import com.example.reservaplusapp.Clases.FechasReserva
+import com.example.reservaplusapp.Clases.FechasResponse
+import com.example.reservaplusapp.Clases.HabitacionesResponse
 import com.example.reservaplusapp.Clases.LoginRequest
 import com.example.reservaplusapp.Clases.LoginResponse
 import com.example.reservaplusapp.Clases.PasswordChangeRequest
@@ -17,6 +20,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Query
 
 interface ApiService {
     @POST("Usuarios/api/registrar/") // Cambia el endpoint según tu configuración en Django
@@ -44,4 +48,13 @@ interface ApiService {
     @GET("Reservas/api/reservas_usuario/") // Reemplaza con la ruta correcta
     suspend fun getReservas(): Response<ReservasResponse>
 
+    @POST("Reservas/api/validar-fechas/")
+    suspend fun validarFechas(@Body fechas: FechasReserva): Response<FechasResponse>
+
+
+    @GET("HotelApp/api/lista-habitaciones-disponibles/")
+    suspend fun getHabitacionesDisponibles(
+        @Query("fecha_inicio") fechaInicio: String,
+        @Query("fecha_final") fechaFinal: String
+    ): HabitacionesResponse
 }

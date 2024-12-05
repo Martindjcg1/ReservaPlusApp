@@ -20,3 +20,15 @@ data class Reserva(
     val Numero_de_habitacion: Int,
     val costo: Double
 )
+
+
+data class FechasReserva(
+    val fecha_inicio: String,
+    val fecha_final: String
+)
+
+data class FechasResponse(
+    val mensaje: String,
+    val fecha_inicio: String,
+    val fecha_final: String
+)

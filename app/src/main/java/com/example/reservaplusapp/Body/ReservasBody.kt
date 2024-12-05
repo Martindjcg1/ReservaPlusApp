@@ -1,6 +1,7 @@
 package com.example.reservaplusapp.Body
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -17,12 +18,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.reservaplusapp.Apis.RetrofitInstance
+import com.example.reservaplusapp.Clases.FechasReserva
+import com.example.reservaplusapp.Clases.FechasResponse
 import com.maxkeppeker.sheets.core.models.base.rememberSheetState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -36,7 +44,10 @@ fun ReservasContent(
     var startDate by remember { mutableStateOf<LocalDate?>(null) }
     var endDate by remember { mutableStateOf<LocalDate?>(null) }
     val calendarState = rememberSheetState()
-
+    val fechasViewModel: FechasViewModel = viewModel()
+    val fechasResponse = fechasViewModel.fechasResponse
+    val isLoading = fechasViewModel.isLoading
+    var fechasReserva = FechasReserva(fecha_inicio = startDate.toString(), fecha_final = endDate.toString())
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -96,6 +107,8 @@ fun ReservasContent(
                     selection = CalendarSelection.Period { start, end ->
                         startDate = start
                         endDate = end
+                        fechasReserva = FechasReserva(fecha_inicio = startDate.toString(), fecha_final = endDate.toString())
+                        fechasViewModel.validarFechas(fechasReserva)
                     }
                 )
             }
@@ -123,17 +136,62 @@ fun ReservasContent(
 
             Button(
                 onClick = {
-                    if (startDate != null && endDate != null) {
-                        // Simular navegación a la pantalla de habitaciones
-                        navController.navigate("habitaciones/${startDate}/${endDate}")
+                    if (startDate != null && endDate != null && !isLoading) {
+                        // Validamos las fechas con el ViewModel al presionar Confirmar
+
+
+                        // Esperamos la respuesta
+                        if (fechasResponse != null) {
+                            Log.d("Fechas",fechasReserva.toString())
+                            // Si la respuesta es válida, navegar a la siguiente pantalla
+                            navController.navigate("habitaciones/${startDate}/${endDate}")
+                        } else {
+                            // Mostrar un mensaje de error si las fechas no son válidas
+                            // Aquí podrías mostrar un snackbar o un mensaje en la UI.
+                            Log.e("Error en las Fechas","")
+                        }
                     }
                 },
-                enabled = startDate != null && endDate != null,
+                enabled = startDate != null && endDate != null && !isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF57BDD3)
                 )
             ) {
-                Text("Confirmar")
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Text("Confirmar")
+                }
+            }
+        }
+    }
+}
+
+
+class FechasViewModel : ViewModel() {
+    var fechasResponse by mutableStateOf<FechasResponse?>(null)
+        private set
+    var isLoading by mutableStateOf(false)
+        private set
+
+    fun validarFechas(fechasReserva: FechasReserva) {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                val response = RetrofitInstance.api.validarFechas(fechasReserva)
+                if (response.isSuccessful) {
+                    Log.d("Respuesta",response.body().toString())
+                    fechasResponse = response.body()
+                } else {
+                    fechasResponse = null
+                }
+            } catch (e: Exception) {
+                fechasResponse = null
+            } finally {
+                isLoading = false
             }
         }
     }
