@@ -29,6 +29,9 @@ interface ApiService {
     @POST("Usuarios/api/login/")
     fun loginUser(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
+    @POST("Usuarios/api/logout/")
+    suspend fun logout(): Response<Unit>
+
     @GET("HotelApp/api/servicios/")
     fun getServicios(): Call<ResponseBody>
 

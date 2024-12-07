@@ -33,12 +33,14 @@ fun LoginScreen(navController: NavController) {
 
                 // Crear el objeto LoginRequest
                 val loginRequest = LoginRequest(username, password)
-
+                Log.d("Respuesta",loginRequest.toString())
                 // Realizar la solicitud de login
                 RetrofitInstance.api.loginUser(loginRequest).enqueue(object : Callback<LoginResponse> {
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                        Log.e("Respuesta",response.body().toString())
                         if (response.isSuccessful) {
                             val token = response.body()?.token
+                            Log.e("Login token:", token.toString())
                             if (token != null) {
                                 // Guardar el token en SharedPreferences
                                 val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)

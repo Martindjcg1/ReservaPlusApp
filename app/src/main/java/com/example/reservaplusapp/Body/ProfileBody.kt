@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -43,6 +41,9 @@ import com.example.reservaplusapp.Clases.PasswordChangeRequest
 import com.example.reservaplusapp.Clases.PasswordChangeResponse
 import com.example.reservaplusapp.Clases.UpdateProfileRequest
 import com.example.reservaplusapp.Clases.UpdateProfileResponse
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.HttpException
@@ -58,6 +59,8 @@ fun ProfileContent(
     var showSection by remember { mutableStateOf<String?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val viewModel: UserProfileViewModel = viewModel()
+    val viewModel2:  LogoutViewModel= viewModel()
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
@@ -219,8 +222,9 @@ fun ProfileContent(
             confirmButton = {
                 Button(
                     onClick = {
-                        showLogoutDialog = false
-                        onLogout()  // Call the onLogout function passed as a parameter
+                        showLogoutDialog = false // Cierra el diálogo inmediatamente
+                        viewModel2.logout(context, onLogout)
+
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
@@ -238,6 +242,36 @@ fun ProfileContent(
         )
     }
 }
+
+class LogoutViewModel : ViewModel() {
+    fun logout(context: Context, onLogout: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = RetrofitInstance.api.logout()
+                if (response.isSuccessful) {
+                    // Borra el token de SharedPreferences
+                    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().clear().apply()
+                    Log.e("Borrado",sharedPreferences.toString())
+                    // Navega fuera del perfil
+                    withContext(Dispatchers.Main) {
+                        onLogout()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error al cerrar sesión.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error de red: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+}
+
+
 
 @Composable
 private fun ProfileOption(

@@ -1,6 +1,7 @@
 package com.example.reservaplusapp.Apis
 
 import android.content.Context
+import android.util.Log
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -8,6 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
     private const val BASE_URL = "http://10.0.2.2:8000/"
+    //private const val BASE_URL = "https://reservaplus.onrender.com/"
 
     private lateinit var appContext: Context
 
@@ -17,8 +19,9 @@ object RetrofitInstance {
 
     private val client = OkHttpClient.Builder().addInterceptor { chain ->
         val sharedPreferences = appContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        //sharedPreferences.edit().clear().apply()
         val token = sharedPreferences.getString("auth_token", null)
-
+        Log.e("Token=", token.toString())
         val request = if (token != null) {
             chain.request().newBuilder()
                 .addHeader("Authorization", "Token $token")
