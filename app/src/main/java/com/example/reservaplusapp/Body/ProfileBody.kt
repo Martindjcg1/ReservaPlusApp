@@ -52,11 +52,13 @@ import retrofit2.Response
 @Composable
 fun ProfileContent(
     modifier: Modifier = Modifier,
-    navController: NavController? = null
+    navController: NavController,
+    onLogout: () -> Unit
 ) {
     var showSection by remember { mutableStateOf<String?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val viewModel: UserProfileViewModel = viewModel()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -218,10 +220,7 @@ fun ProfileContent(
                 Button(
                     onClick = {
                         showLogoutDialog = false
-                        // Navigate to login screen
-                        navController?.navigate("login") {
-                            popUpTo(0) // Clear the back stack
-                        }
+                        onLogout()  // Call the onLogout function passed as a parameter
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {

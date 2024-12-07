@@ -77,7 +77,6 @@ fun MainScreen(navController: NavController) {
     var showNotifications by remember { mutableStateOf(false) }
     var notifications by remember { mutableStateOf(listOf("Nueva reserva disponible", "¡Oferta especial!")) }
 
-    // Asegúrate de que el controlador de navegación sea del tipo adecuado
     val navHostController = rememberNavController()
 
     Scaffold(
@@ -133,7 +132,6 @@ fun MainScreen(navController: NavController) {
                 selectedTab = selectedTab,
                 onTabSelected = {
                     selectedTab = it
-                    // Actualizamos el NavHostController para ir a la pantalla correspondiente
                     when (it) {
                         0 -> navHostController.navigate("home")
                         1 -> navHostController.navigate("reservas")
@@ -159,9 +157,17 @@ fun MainScreen(navController: NavController) {
                 ServiciosContent(modifier = Modifier.padding(paddingValues))
             }
             composable("profile") {
-                ProfileContent(modifier = Modifier.padding(paddingValues))
+                ProfileContent(
+                    modifier = Modifier.padding(paddingValues),
+                    navController = navHostController,
+                    onLogout = {
+                        // Navegar al login y limpiar el back stack
+                        navController.navigate("login") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    }
+                )
             }
-            // Aquí añadimos la ruta dinámica para habitaciones
             composable(
                 "habitaciones/{startDate}/{endDate}",
                 arguments = listOf(
@@ -171,14 +177,10 @@ fun MainScreen(navController: NavController) {
             ) { backStackEntry ->
                 val startDateString = backStackEntry.arguments?.getString("startDate")
                 val endDateString = backStackEntry.arguments?.getString("endDate")
-
-                // Convertir las fechas de String a LocalDate
                 val startDate = LocalDate.parse(startDateString)
                 val endDate = LocalDate.parse(endDateString)
-
-
                 HabitacionesScreen(startDate = startDate, endDate = endDate,
-                    navController = navHostController  )
+                    navController = navHostController)
             }
             composable(
                 route = "detalles/{id}/{startDate}/{endDate}",

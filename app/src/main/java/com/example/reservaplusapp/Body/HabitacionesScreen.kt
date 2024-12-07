@@ -43,25 +43,22 @@ fun HabitacionesScreen(
     viewModel: HabitacionesViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     modifier: Modifier = Modifier
 ) {
-
     val habitaciones by viewModel.habitacionesResponse
     val isLoading by viewModel.isLoading
 
     LaunchedEffect(Unit) {
         viewModel.fetchHabitaciones(startDate, endDate)
     }
+
     Box(modifier = modifier.fillMaxSize()) {
         when {
             isLoading -> {
-                // Mostrar un indicador de carga
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                     color = Color(0xFF57BDD3)
                 )
             }
-
             habitaciones.isNullOrEmpty() -> {
-                // Mostrar mensaje cuando no hay habitaciones
                 Text(
                     text = "No hay habitaciones disponibles.",
                     fontSize = 16.sp,
@@ -69,13 +66,12 @@ fun HabitacionesScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
             else -> {
-                // Mostrar la lista de habitaciones
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(bottom = 80.dp), // Add extra padding at the bottom
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
@@ -91,12 +87,17 @@ fun HabitacionesScreen(
                     items(habitaciones!!) { habitacion ->
                         HabitacionCard(
                             habitacion = habitacion,
-                            startDate = startDate, // Pasar la fecha de inicio recibida en el composable principal
-                            endDate = endDate,     // Pasar la fecha de fin recibida en el composable principal
+                            startDate = startDate,
+                            endDate = endDate,
                             onVerDetalles = {
-                                navController.navigate("detalle") // Implementar detalles más adelante
+                                navController.navigate("detalle/${habitacion.id}/$startDate/$endDate")
                             }
                         )
+                    }
+
+                    // Add a spacer at the end of the list
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
@@ -104,10 +105,9 @@ fun HabitacionesScreen(
     }
 }
 
-
 @Composable
 fun HabitacionCard(
-    habitacion: Habitaciones, // Modelo que incluye los datos de nombre, precio, cupo y slug
+    habitacion: Habitaciones,
     startDate: LocalDate,
     endDate: LocalDate,
     onVerDetalles: () -> Unit,
@@ -125,9 +125,8 @@ fun HabitacionCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Imagen de la habitación
             AsyncImage(
-                model = habitacion.slug, // URL de la imagen desde el atributo slug
+                model = habitacion.slug,
                 contentDescription = "Imagen de la habitación",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,7 +137,6 @@ fun HabitacionCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Información principal de la habitación
             Text(
                 text = habitacion.nombre,
                 fontSize = 20.sp,
@@ -158,13 +156,8 @@ fun HabitacionCard(
                 color = Color.Gray
             )
 
-
-
-
-
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botón para ver más detalles
             Button(
                 onClick = onVerDetalles,
                 modifier = Modifier.align(Alignment.End),
