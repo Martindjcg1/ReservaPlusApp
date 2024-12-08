@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,43 +30,35 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.reservaplusapp.Clases.Habitaciones
+import com.example.reservaplusapp.Models.DetallesHabitacionViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DetallesHabitacionScreen(
     habitacionId: Int,
     startDate: LocalDate,
     endDate: LocalDate,
-    navController: NavController,
-    viewModel: HabitacionesViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    navController: NavController
 ) {
-    LaunchedEffect(habitacionId) {
-        viewModel.setSelectedHabitacion(habitacionId)
+    val viewModel = remember { DetallesHabitacionViewModel() }
+
+    LaunchedEffect(habitacionId, startDate, endDate) {
+        viewModel.fetchHabitacionDetalle(
+            habitacionId = habitacionId,
+            startDate = startDate.toString(),
+            endDate = endDate.toString()
+        )
     }
 
-    val habitacion by viewModel.selectedHabitacion
-    val isLoading by viewModel.isLoading
-
-    DisposableEffect(Unit) {
-        onDispose {
-            Log.d("DetallesHabitacionScreen", "Disposing")
-        }
-    }
-
-    // Function to handle back navigation
-    val navigateBack = {
-        navController.navigate("habitaciones/${startDate}/${endDate}") {
-            popUpTo("habitaciones/${startDate}/${endDate}") { inclusive = true }
-        }
-    }
+    val habitacionDetalleResponse = viewModel.habitacionDetalleResponse
+    val isLoading = viewModel.isLoading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Back button (always visible)
+        // Botón de regresar
         IconButton(
-            onClick = navigateBack,
+            onClick = { navController.popBackStack() },
             modifier = Modifier
                 .padding(16.dp)
                 .background(
@@ -88,7 +81,7 @@ fun DetallesHabitacionScreen(
                     color = Color(0xFF57BDD3)
                 )
             }
-            habitacion == null -> {
+            habitacionDetalleResponse == null -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -104,6 +97,10 @@ fun DetallesHabitacionScreen(
                 }
             }
             else -> {
+                val habitacion = habitacionDetalleResponse.habitacion
+                val detalle = habitacionDetalleResponse.detalle
+                val numero= detalle?.Numero_de_habitacion
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -116,7 +113,7 @@ fun DetallesHabitacionScreen(
                             .height(300.dp)
                     ) {
                         AsyncImage(
-                            model = habitacion?.slug,
+                            model = habitacion.slug,
                             contentDescription = "Imagen de la habitación",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -130,7 +127,7 @@ fun DetallesHabitacionScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = habitacion?.nombre ?: "",
+                            text = habitacion.nombre,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
@@ -139,58 +136,36 @@ fun DetallesHabitacionScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Cupo: ${habitacion?.cupo ?: 0} personas",
+                            text = "Cupo: ${habitacion.cupo} personas",
                             fontSize = 16.sp,
                             color = Color.Gray
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Precio por noche
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF57BDD3)
+                        detalle?.let {
+                            Text(
+                                text = "Detalles de la habitación:",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
                             )
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = "Precio por noche",
-                                    color = Color.White,
-                                    fontSize = 18.sp
-                                )
-                                Text(
-                                    text = "$${habitacion?.precio}",
-                                    color = Color.White,
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = "Número de habitación: ${it.Numero_de_habitacion}")
+                            Text(text = "Ubicación: ${it.ubicacion}")
+                            Text(text = "Ventanas: ${it.ventanas}")
+                            Text(text = "Camas: ${it.camas}")
+                            Text(text = "Número de camas: ${it.numero_de_camas}")
+                            Text(text = "Aire acondicionado: ${if (it.aire_acondicionado) "Sí" else "No"}")
+                            Text(text = "Jacuzzi: ${if (it.jacuzzi) "Sí" else "No"}")
+                            Text(text = "Disponibilidad: ${it.disponibilidad}")
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Fechas seleccionadas
-                        Text(
-                            text = "Fechas seleccionadas:",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))} - ${endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
+                        // Botón de reservar
                         Button(
                             onClick = {
-                               // navController.navigate("formulario/${habitacionId}/${habitacion?.numeroHabitacion ?: 0}/$startDate/$endDate")
+                                navController.navigate("formulario/${habitacionId}/${numero}/${startDate}/${endDate}")
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

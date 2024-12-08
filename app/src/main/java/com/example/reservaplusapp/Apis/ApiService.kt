@@ -2,6 +2,7 @@ package com.example.reservaplusapp.Apis
 
 import com.example.reservaplusapp.Clases.FechasReserva
 import com.example.reservaplusapp.Clases.FechasResponse
+import com.example.reservaplusapp.Clases.HabitacionDetalleResponse
 import com.example.reservaplusapp.Clases.HabitacionesResponse
 import com.example.reservaplusapp.Clases.LoginRequest
 import com.example.reservaplusapp.Clases.LoginResponse
@@ -20,6 +21,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -60,4 +62,11 @@ interface ApiService {
         @Query("fecha_inicio") fechaInicio: String,
         @Query("fecha_final") fechaFinal: String
     ): HabitacionesResponse
+
+    @GET("HotelApp/api/detalle-habitacion/{habitacion_id}/")
+    fun getDetalleHabitacion(
+        @Path("habitacion_id") habitacionId: Int,
+        @Query("fecha_inicio") startDate: String,
+        @Query("fecha_final") endDate: String
+    ): Call<HabitacionDetalleResponse>
 }

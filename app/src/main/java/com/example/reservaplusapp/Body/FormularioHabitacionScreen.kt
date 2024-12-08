@@ -166,7 +166,7 @@ fun FormularioHabitacionScreen(
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-
+//Aqui agregar los servicios pero de la API no de la lista
         servicios.forEach { (servicio, precio) ->
             Row(
                 modifier = Modifier
