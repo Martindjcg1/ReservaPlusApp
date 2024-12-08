@@ -67,6 +67,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.reservaplusapp.Body.FormularioHabitacionScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -159,9 +160,8 @@ fun MainScreen(navController: NavController) {
             composable("profile") {
                 ProfileContent(
                     modifier = Modifier.padding(paddingValues),
-                    navController = navHostController,
+                    navController = navController,
                     onLogout = {
-                        // Navegar al login y limpiar el back stack
                         navController.navigate("login") {
                             popUpTo("main") { inclusive = true }
                         }
@@ -179,11 +179,14 @@ fun MainScreen(navController: NavController) {
                 val endDateString = backStackEntry.arguments?.getString("endDate")
                 val startDate = LocalDate.parse(startDateString)
                 val endDate = LocalDate.parse(endDateString)
-                HabitacionesScreen(startDate = startDate, endDate = endDate,
-                    navController = navHostController)
+                HabitacionesScreen(
+                    startDate = startDate,
+                    endDate = endDate,
+                    navController = navHostController
+                )
             }
             composable(
-                route = "detalles/{id}/{startDate}/{endDate}",
+                route = "detalle/{id}/{startDate}/{endDate}",
                 arguments = listOf(
                     navArgument("id") { type = NavType.IntType },
                     navArgument("startDate") { type = NavType.StringType },
@@ -193,7 +196,34 @@ fun MainScreen(navController: NavController) {
                 val id = backStackEntry.arguments?.getInt("id") ?: 0
                 val startDate = LocalDate.parse(backStackEntry.arguments?.getString("startDate"))
                 val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
-                DetallesHabitacionScreen(id, startDate, endDate, navController)
+                DetallesHabitacionScreen(
+                    habitacionId = id,
+                    startDate = startDate,
+                    endDate = endDate,
+                    navController = navHostController
+                )
+            }
+
+            composable(
+                route = "formulario/{id}/{numeroHabitacion}/{startDate}/{endDate}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.IntType },
+                    navArgument("numeroHabitacion") { type = NavType.IntType },
+                    navArgument("startDate") { type = NavType.StringType },
+                    navArgument("endDate") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getInt("id") ?: 0
+                val numeroHabitacion = backStackEntry.arguments?.getInt("numeroHabitacion") ?: 0
+                val startDate = LocalDate.parse(backStackEntry.arguments?.getString("startDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                FormularioHabitacionScreen(
+                    habitacionId = id,
+                    numeroHabitacion = numeroHabitacion,
+                    startDate = startDate,
+                    endDate = endDate,
+                    navController = navHostController
+                )
             }
         }
     }
@@ -207,7 +237,6 @@ fun MainScreen(navController: NavController) {
         )
     }
 }
-
 
 @Composable
 fun NotificationsDialog(

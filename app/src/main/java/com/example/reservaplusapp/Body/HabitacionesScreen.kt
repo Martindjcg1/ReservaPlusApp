@@ -34,6 +34,9 @@ import com.example.reservaplusapp.Apis.RetrofitInstance
 import java.time.format.DateTimeFormatter
 
 
+
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitacionesScreen(
@@ -178,6 +181,9 @@ class HabitacionesViewModel : ViewModel() {
     private val _habitacionesResponse = mutableStateOf<List<Habitaciones>?>(null)
     val habitacionesResponse: State<List<Habitaciones>?> = _habitacionesResponse
 
+    private val _selectedHabitacion = mutableStateOf<Habitaciones?>(null)
+    val selectedHabitacion: State<Habitaciones?> = _selectedHabitacion
+
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -189,10 +195,9 @@ class HabitacionesViewModel : ViewModel() {
                 val formatter = DateTimeFormatter.ISO_LOCAL_DATE
                 val formattedStartDate = startDate.format(formatter)
                 val formattedEndDate = endDate.format(formatter)
-                Log.d("Fecha de inicio",formattedStartDate)
-                Log.d("Fecha de termminacion",formattedEndDate)
+                Log.d("Fecha de inicio", formattedStartDate)
+                Log.d("Fecha de terminacion", formattedEndDate)
 
-                // Llamar a RetrofitInstance.api
                 val response = RetrofitInstance.api.getHabitacionesDisponibles(
                     formattedStartDate,
                     formattedEndDate
@@ -200,12 +205,24 @@ class HabitacionesViewModel : ViewModel() {
 
                 _habitacionesResponse.value = response.habitacionesDisponibles
             } catch (e: Exception) {
-                // Maneja errores aquí
+                Log.e("HabitacionesViewModel", "Error fetching habitaciones", e)
                 _habitacionesResponse.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+    fun setSelectedHabitacion(habitacionId: Int) {
+        _selectedHabitacion.value = _habitacionesResponse.value?.find { it.id == habitacionId }
+        Log.d("HabitacionesViewModel", "Selected habitacion: ${_selectedHabitacion.value}")
+    }
 }
+
+
+
+
+
+
+
 

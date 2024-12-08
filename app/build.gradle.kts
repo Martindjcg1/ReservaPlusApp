@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.espresso.core)
     implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.foundation.android)
 
 
     testImplementation(libs.junit)
