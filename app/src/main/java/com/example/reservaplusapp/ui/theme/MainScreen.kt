@@ -1,73 +1,46 @@
 package com.example.reservaplusapp.ui.theme
 
 
-import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.NavType
-import coil.compose.rememberAsyncImagePainter
 import com.example.reservaplusapp.Body.MainBody
 import com.example.reservaplusapp.Body.ProfileContent
 import com.example.reservaplusapp.Body.ReservasContent
 import com.example.reservaplusapp.Body.ServiciosContent
 import com.example.reservaplusapp.Footer.MainFooter
-import com.example.reservaplusapp.Header.MainHeader
 import com.example.reservaplusapp.R
-import com.example.reservaplusapp.Apis.RetrofitInstance
 import com.example.reservaplusapp.Body.DetallesHabitacionScreen
 import com.example.reservaplusapp.Body.HabitacionesScreen
-import com.example.reservaplusapp.Clases.Servicio
-import com.google.gson.Gson
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.time.LocalDate
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.reservaplusapp.Body.FormularioHabitacionScreen
+import com.example.reservaplusapp.Body.ServiciosChooseScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -203,9 +176,8 @@ fun MainScreen(navController: NavController) {
                     navController = navHostController
                 )
             }
-
             composable(
-                route = "formulario/{id}/{numeroHabitacion}/{startDate}/{endDate}",
+                route = "servicios/{id}/{numeroHabitacion}/{startDate}/{endDate}",
                 arguments = listOf(
                     navArgument("id") { type = NavType.IntType },
                     navArgument("numeroHabitacion") { type = NavType.IntType },
@@ -217,11 +189,36 @@ fun MainScreen(navController: NavController) {
                 val numeroHabitacion = backStackEntry.arguments?.getInt("numeroHabitacion") ?: 0
                 val startDate = LocalDate.parse(backStackEntry.arguments?.getString("startDate"))
                 val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                ServiciosChooseScreen(
+                    habitacionId = id,
+                    numeroHabitacion = numeroHabitacion,
+                    startDate = startDate,
+                    endDate = endDate,
+                    navController = navHostController,
+                )
+            }
+
+            composable(
+                route = "formulario/{id}/{numeroHabitacion}/{startDate}/{endDate}/{serviciosIds}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.IntType },
+                    navArgument("numeroHabitacion") { type = NavType.IntType },
+                    navArgument("startDate") { type = NavType.StringType },
+                    navArgument("endDate") { type = NavType.StringType },
+                    navArgument("serviciosIds") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getInt("id") ?: 0
+                val numeroHabitacion = backStackEntry.arguments?.getInt("numeroHabitacion") ?: 0
+                val startDate = LocalDate.parse(backStackEntry.arguments?.getString("startDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                val serviciosIds = backStackEntry.arguments?.getString("serviciosIds") ?: ""
                 FormularioHabitacionScreen(
                     habitacionId = id,
                     numeroHabitacion = numeroHabitacion,
                     startDate = startDate,
                     endDate = endDate,
+                    serviciosIds = serviciosIds,
                     navController = navHostController
                 )
             }

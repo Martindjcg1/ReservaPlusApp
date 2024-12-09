@@ -3,7 +3,6 @@ package com.example.reservaplusapp.Body
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +13,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -28,13 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -47,19 +44,14 @@ fun FormularioHabitacionScreen(
     numeroHabitacion: Int,
     startDate: LocalDate,
     endDate: LocalDate,
+    serviciosIds: String,
     navController: NavController,
-    viewModel: HabitacionesViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: HabitacionesViewModel = viewModel()
 ) {
     var numeroPersonas by remember { mutableStateOf("") }
-    var selectedServices by remember { mutableStateOf(setOf<String>()) }
-
-    val servicios = listOf(
-        "Spa" to 25.00,
-        "Gym" to 25.00,
-        "Cancha de tenis" to 30.00
-    )
 
     val habitacion by viewModel.selectedHabitacion
+
 
     LaunchedEffect(habitacionId) {
         viewModel.setSelectedHabitacion(habitacionId)
@@ -71,7 +63,6 @@ fun FormularioHabitacionScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Título
         Text(
             text = "Reservar ${habitacion?.nombre ?: "Habitación"}",
             fontSize = 24.sp,
@@ -80,15 +71,10 @@ fun FormularioHabitacionScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Fechas
-        Text(
-            text = "Fecha de Inicio",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
         OutlinedTextField(
             value = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
             onValueChange = { },
+            label = { Text("Fecha de Inicio") },
             enabled = false,
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,14 +85,10 @@ fun FormularioHabitacionScreen(
             )
         )
 
-        Text(
-            text = "Fecha Final",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
         OutlinedTextField(
             value = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
             onValueChange = { },
+            label = { Text("Fecha Final") },
             enabled = false,
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,15 +99,10 @@ fun FormularioHabitacionScreen(
             )
         )
 
-        // Número de Habitación
-        Text(
-            text = "Número de Habitación",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
         OutlinedTextField(
             value = numeroHabitacion.toString(),
             onValueChange = { },
+            label = { Text("Número de Habitación") },
             enabled = false,
             modifier = Modifier
                 .fillMaxWidth()
@@ -136,12 +113,6 @@ fun FormularioHabitacionScreen(
             )
         )
 
-        // Número de Personas
-        Text(
-            text = "Número de Personas",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
         OutlinedTextField(
             value = numeroPersonas,
             onValueChange = {
@@ -149,6 +120,7 @@ fun FormularioHabitacionScreen(
                     numeroPersonas = it
                 }
             },
+            label = { Text("Número de Personas") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth()
@@ -159,44 +131,17 @@ fun FormularioHabitacionScreen(
             )
         )
 
-        // Servicios Adicionales
         Text(
-            text = "Servicios Adicionales",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
+            text = "Servicios Adicionales Seleccionados",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color(0xFF57BDD3),
             modifier = Modifier.padding(bottom = 8.dp)
         )
-//Aqui agregar los servicios pero de la API no de la lista
-        servicios.forEach { (servicio, precio) ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = selectedServices.contains(servicio),
-                    onCheckedChange = { checked ->
-                        selectedServices = if (checked) {
-                            selectedServices + servicio
-                        } else {
-                            selectedServices - servicio
-                        }
-                    },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF57BDD3)
-                    )
-                )
-                Text(
-                    text = "$servicio - $${String.format("%.2f", precio)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botones
         Button(
             onClick = {
                 // Implementar lógica de pago

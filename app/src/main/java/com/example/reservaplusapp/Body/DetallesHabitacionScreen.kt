@@ -165,7 +165,7 @@ fun DetallesHabitacionScreen(
                         // Botón de reservar
                         Button(
                             onClick = {
-                                navController.navigate("formulario/${habitacionId}/${numero}/${startDate}/${endDate}")
+                                navController.navigate("servicios/${habitacionId}/${numero}/${startDate}/${endDate}")
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

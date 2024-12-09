@@ -217,6 +217,8 @@ class HabitacionesViewModel : ViewModel() {
         _selectedHabitacion.value = _habitacionesResponse.value?.find { it.id == habitacionId }
         Log.d("HabitacionesViewModel", "Selected habitacion: ${_selectedHabitacion.value}")
     }
+
+
 }
 
 
