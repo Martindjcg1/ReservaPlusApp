@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import com.example.reservaplusapp.Body.MainBody
@@ -195,6 +196,7 @@ fun MainScreen(navController: NavController) {
                     startDate = startDate,
                     endDate = endDate,
                     navController = navHostController,
+                    viewModel = viewModel()
                 )
             }
 

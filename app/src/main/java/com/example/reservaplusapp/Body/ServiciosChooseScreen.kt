@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Body
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,18 +21,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.rememberImagePainter
+import com.example.reservaplusapp.Clases.Servicio
+import com.example.reservaplusapp.Models.ServiciosViewModel2
 import java.time.LocalDate
 
 
 
-data class Servicio(
-    val id: Int,
-    val nombre: String,
-    val descripcion: String,
-    val imagen: String,
-    val precio: Double
-)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,17 +38,11 @@ fun ServiciosChooseScreen(
     numeroHabitacion: Int,
     startDate: LocalDate,
     endDate: LocalDate,
-    navController: NavController
+    navController: NavController,
+    viewModel: ServiciosViewModel2
 ) {
-    val servicios = listOf(
-        Servicio(1, "Spa", "Relájate con nuestros tratamientos de spa", "https://example.com/spa.jpg", 50.0),
-        Servicio(2, "Gimnasio", "Mantén tu rutina de ejercicios", "https://example.com/gym.jpg", 20.0),
-        Servicio(3, "Desayuno buffet", "Disfruta de un desayuno completo", "https://example.com/breakfast.jpg", 15.0),
-        Servicio(4, "Tour guiado", "Conoce la ciudad con nuestros guías expertos", "https://example.com/tour.jpg", 40.0),
-        Servicio(5, "Alquiler de bicicletas", "Explora los alrededores en bicicleta", "https://example.com/bike.jpg", 10.0)
-    )
-
-    var selectedServicios by remember { mutableStateOf(setOf<Int>()) }
+    val servicios = viewModel.servicios
+    val selectedServicios = viewModel.selectedServicios
 
     Scaffold(
         topBar = {
@@ -75,41 +67,46 @@ fun ServiciosChooseScreen(
                 .padding(innerPadding)
                 .padding(bottom = 64.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .align(Alignment.TopCenter)
-            ) {
-                item {
-                    Text(
-                        text = "Selecciona servicios adicionales",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF57BDD3),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
+            if (servicios.isEmpty()) {
+                Text(
+                    text = "Cargando servicios...",
+                    modifier = Modifier.align(Alignment.Center),
+                    fontSize = 16.sp
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .align(Alignment.TopCenter)
+                ) {
+                    item {
+                        Text(
+                            text = "Selecciona servicios adicionales",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF57BDD3),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
 
-                items(servicios) { servicio ->
-                    ServicioCard(
-                        servicio = servicio,
-                        isSelected = selectedServicios.contains(servicio.id),
-                        onSelectChanged = { isSelected ->
-                            selectedServicios = if (isSelected) {
-                                selectedServicios + servicio.id
-                            } else {
-                                selectedServicios - servicio.id
+                    items(servicios) { servicio ->
+                        ServicioCard(
+                            servicio = servicio,
+                            isSelected = selectedServicios.contains(servicio.id),
+                            onSelectChanged = { isSelected ->
+                                viewModel.toggleServicioSelection(servicio.id)
                             }
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
 
             Button(
                 onClick = {
                     val serviciosIds = selectedServicios.joinToString(",")
+                    Log.d("los servicios:", serviciosIds)
                     navController.navigate(
                         "formulario/$habitacionId/$numeroHabitacion/${startDate.toString()}/${endDate.toString()}/$serviciosIds"
                     )
@@ -126,6 +123,7 @@ fun ServiciosChooseScreen(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,11 +147,11 @@ fun ServicioCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = rememberImagePainter(servicio.imagen),
-                contentDescription = servicio.nombre,
+            AsyncImage(
+                model = servicio.slug,
+                contentDescription = "Imagen del servicio",
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(80.dp) // Ajustar el tamaño de la imagen
                     .padding(end = 16.dp),
                 contentScale = ContentScale.Crop
             )

@@ -11,6 +11,7 @@ import com.example.reservaplusapp.Clases.PasswordChangeResponse
 import com.example.reservaplusapp.Clases.RegisterRequest
 import com.example.reservaplusapp.Clases.RegisterResponse
 import com.example.reservaplusapp.Clases.ReservasResponse
+import com.example.reservaplusapp.Clases.Servicio
 import com.example.reservaplusapp.Clases.UpdateProfileRequest
 import com.example.reservaplusapp.Clases.UpdateProfileResponse
 import com.example.reservaplusapp.Clases.UserProfileResponse
@@ -36,6 +37,11 @@ interface ApiService {
 
     @GET("HotelApp/api/servicios/")
     fun getServicios(): Call<ResponseBody>
+
+
+    @GET("HotelApp/api/servicios/")
+    suspend fun getServicios2(): List<Servicio>
+
 
 
     @GET("Usuarios/api/profile/") // Cambia la ruta si es diferente
