@@ -35,6 +35,16 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
+
+import androidx.compose.foundation.shape.RoundedCornerShape
+
+import androidx.compose.material.icons.filled.*
+
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.reservaplusapp.Clases.HabitacionDetalleResponse
+
 @Composable
 fun DetallesHabitacionScreen(
     habitacionId: Int,
@@ -56,24 +66,6 @@ fun DetallesHabitacionScreen(
     val isLoading = viewModel.isLoading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Botón de regresar
-        IconButton(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier
-                .padding(16.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.4f),
-                    shape = CircleShape
-                )
-                .align(Alignment.TopStart)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar",
-                tint = Color.White
-            )
-        }
-
         when {
             isLoading -> {
                 CircularProgressIndicator(
@@ -82,107 +74,179 @@ fun DetallesHabitacionScreen(
                 )
             }
             habitacionDetalleResponse == null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "No se encontró la habitación (ID: $habitacionId)",
-                        color = Color.Gray,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                ErrorMessage(habitacionId)
             }
             else -> {
-                val habitacion = habitacionDetalleResponse.habitacion
-                val detalle = habitacionDetalleResponse.detalle
-                val numero= detalle?.Numero_de_habitacion
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    // Imagen principal
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    ) {
-                        AsyncImage(
-                            model = habitacion.slug,
-                            contentDescription = "Imagen de la habitación",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    // Información de la habitación
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = habitacion.nombre,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Cupo: ${habitacion.cupo} personas",
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        detalle?.let {
-                            Text(
-                                text = "Detalles de la habitación:",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = "Número de habitación: ${it.Numero_de_habitacion}")
-                            Text(text = "Ubicación: ${it.ubicacion}")
-                            Text(text = "Ventanas: ${it.ventanas}")
-                            Text(text = "Camas: ${it.camas}")
-                            Text(text = "Número de camas: ${it.numero_de_camas}")
-                            Text(text = "Aire acondicionado: ${if (it.aire_acondicionado) "Sí" else "No"}")
-                            Text(text = "Jacuzzi: ${if (it.jacuzzi) "Sí" else "No"}")
-                            Text(text = "Disponibilidad: ${it.disponibilidad}")
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Botón de reservar
-                        Button(
-                            onClick = {
-                                navController.navigate("servicios/${habitacionId}/${numero}/${startDate}/${endDate}")
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF57BDD3)
-                            )
-                        ) {
-                            Text(
-                                text = "Reservar",
-                                fontSize = 18.sp,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
+                DetallesHabitacionContent(
+                    habitacionDetalleResponse = habitacionDetalleResponse,
+                    startDate = startDate,
+                    endDate = endDate,
+                    navController = navController
+                )
             }
         }
+
+        // Botón de regresar
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color(0xFF57BDD3), CircleShape)
+                .align(Alignment.TopStart)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Regresar",
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun ErrorMessage(habitacionId: Int) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = "Error",
+            tint = Color.Red,
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "No se encontró la habitación (ID: $habitacionId)",
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun DetallesHabitacionContent(
+    habitacionDetalleResponse: HabitacionDetalleResponse,
+    startDate: LocalDate,
+    endDate: LocalDate,
+    navController: NavController
+) {
+    val habitacion = habitacionDetalleResponse.habitacion
+    val detalle = habitacionDetalleResponse.detalle
+    val numero = detalle?.Numero_de_habitacion
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Imagen principal
+        AsyncImage(
+            model = habitacion.slug,
+            contentDescription = "Imagen de la habitación",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        // Información de la habitación
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = habitacion.nombre,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF57BDD3)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Cupo",
+                    tint = Color.Gray
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Cupo: ${habitacion.cupo} personas",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            detalle?.let {
+                Text(
+                    text = "Detalles de la habitación",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF57BDD3)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                DetalleItem(Icons.Default.Home, "Número de habitación: ${it.Numero_de_habitacion}")
+                DetalleItem(Icons.Default.LocationOn, "Ubicación: ${it.ubicacion}")
+                DetalleItem(Icons.Default.Check, "Ventanas: ${it.ventanas}")
+                DetalleItem(Icons.Default.Menu, "Camas: ${it.camas}")
+                DetalleItem(Icons.Default.Info, "Número de camas: ${it.numero_de_camas}")
+                DetalleItem(Icons.Default.Info, "Aire acondicionado: ${if (it.aire_acondicionado) "Sí" else "No"}")
+                DetalleItem(Icons.Default.Info, "Jacuzzi: ${if (it.jacuzzi) "Sí" else "No"}")
+                DetalleItem(Icons.Default.Lock, "Disponibilidad: ${it.disponibilidad}")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Botón de reservar
+            Button(
+                onClick = {
+                    navController.navigate("servicios/${habitacion.id}/${numero}/${startDate}/${endDate}")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF57BDD3)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "Reservar",
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Reservar ahora",
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DetalleItem(icon: ImageVector, text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color(0xFF57BDD3),
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, fontSize = 16.sp)
     }
 }

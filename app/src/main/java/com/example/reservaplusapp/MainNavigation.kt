@@ -13,6 +13,7 @@ import com.example.reservaplusapp.ui.theme.SplashScreen
 
 
 import com.example.reservaplusapp.ui.theme.MainScreen
+import com.example.reservaplusapp.ui.theme.PaymentResultSplashScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -35,6 +36,26 @@ fun MainNavigation() {
         }
         composable("main") {
             MainScreen(navController = navController)
+        }
+        composable("payment_success") {
+            PaymentResultSplashScreen(
+                isSuccess = true,
+                onSplashFinished = {
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("payment_error") {
+            PaymentResultSplashScreen(
+                isSuccess = false,
+                onSplashFinished = {
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

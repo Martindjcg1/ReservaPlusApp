@@ -199,7 +199,6 @@ fun MainScreen(navController: NavController) {
                     viewModel = viewModel()
                 )
             }
-
             composable(
                 route = "formulario/{id}/{numeroHabitacion}/{startDate}/{endDate}/{serviciosIds}",
                 arguments = listOf(
@@ -222,6 +221,26 @@ fun MainScreen(navController: NavController) {
                     endDate = endDate,
                     serviciosIds = serviciosIds,
                     navController = navHostController
+                )
+            }
+            composable("payment_success") {
+                PaymentResultSplashScreen(
+                    isSuccess = true,
+                    onSplashFinished = {
+                        navHostController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable("payment_error") {
+                PaymentResultSplashScreen(
+                    isSuccess = false,
+                    onSplashFinished = {
+                        navHostController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }
                 )
             }
         }

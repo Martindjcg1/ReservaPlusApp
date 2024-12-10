@@ -144,7 +144,13 @@ fun FormularioHabitacionScreen(
 
         Button(
             onClick = {
-                // Implementar lógica de pago
+                // Simular el proceso de pago
+                val paymentSuccessful = Math.random() < 0.5 // 50% de probabilidad de éxito
+                if (paymentSuccessful) {
+                    navController.navigate("payment_success")
+                } else {
+                    navController.navigate("payment_error")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
