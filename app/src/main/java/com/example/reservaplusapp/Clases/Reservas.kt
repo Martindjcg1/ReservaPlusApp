@@ -32,3 +32,11 @@ data class FechasResponse(
     val fecha_inicio: String,
     val fecha_final: String
 )
+
+
+data class CheckoutRequest(
+    val fecha_inicio: String,
+    val fecha_final: String,
+    val numero_personas: Int,
+    val servicios: List<Int>
+)

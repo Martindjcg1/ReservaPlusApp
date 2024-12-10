@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reservaplusapp.Apis.RetrofitInstance
+import com.example.reservaplusapp.Clases.CheckoutRequest
 import com.example.reservaplusapp.Clases.Habitacion1
 import com.example.reservaplusapp.Clases.HabitacionDetalleResponse
 import com.example.reservaplusapp.Clases.Servicio
@@ -15,6 +16,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
+//detalle habitacion de reservas
 class DetallesHabitacionViewModel : ViewModel() {
     var habitacionDetalleResponse  by mutableStateOf<HabitacionDetalleResponse?>(null)
         private set
@@ -50,7 +53,7 @@ class DetallesHabitacionViewModel : ViewModel() {
     }
 }
 
-
+//Seleccion de servicios para la reserva
 class ServiciosViewModel2 : ViewModel() {
     private val _servicios = mutableStateOf<List<Servicio>>(emptyList())
     val servicios: List<Servicio> get() = _servicios.value
@@ -81,4 +84,41 @@ class ServiciosViewModel2 : ViewModel() {
         }
     }
 }
+
+
+class HabitacionesReservasViewModel : ViewModel() {
+    suspend fun crearCheckout(
+        habitacionId: Int,
+        numeroHabitacion: Int,
+        fechaInicio: String,
+        fechaFinal: String,
+        numeroPersonas: Int,
+        servicios: List<Int>
+    ): String? {
+        return try {
+            val requestBody = CheckoutRequest(
+                fecha_inicio = fechaInicio,
+                fecha_final = fechaFinal,
+                numero_personas = numeroPersonas,
+                servicios = servicios
+            )
+            Log.d("CheckoutRequest", requestBody.toString())
+            val response = RetrofitInstance.api.crearCheckoutSession(
+                habitacionId,
+                numeroHabitacion,
+                requestBody
+            )
+            if (response.isSuccessful) {
+                response.body()?.get("url") // Retornar la URL de Stripe si tiene éxito
+            } else {
+                Log.e("CheckoutError", response.errorBody()?.string() ?: "Error desconocido")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("CheckoutError", "Error: ${e.message}")
+            null
+        }
+    }
+}
+
 

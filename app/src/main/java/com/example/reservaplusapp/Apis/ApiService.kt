@@ -1,5 +1,6 @@
 package com.example.reservaplusapp.Apis
 
+import com.example.reservaplusapp.Clases.CheckoutRequest
 import com.example.reservaplusapp.Clases.FechasReserva
 import com.example.reservaplusapp.Clases.FechasResponse
 import com.example.reservaplusapp.Clases.HabitacionDetalleResponse
@@ -75,4 +76,11 @@ interface ApiService {
         @Query("fecha_inicio") startDate: String,
         @Query("fecha_final") endDate: String
     ): Call<HabitacionDetalleResponse>
+
+    @POST("Reservas/api/checkout/{habitacion_id}/{numero_de_habitacion}/")
+    suspend fun crearCheckoutSession(
+        @Path("habitacion_id") habitacionId: Int,
+        @Path("numero_de_habitacion") numeroHabitacion: Int,
+        @Body requestBody: CheckoutRequest
+    ): Response<Map<String, String>> // La API devuelve un JSON con la URL
 }

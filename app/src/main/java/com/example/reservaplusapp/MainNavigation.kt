@@ -1,8 +1,10 @@
 package com.example.reservaplusapp
 
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable

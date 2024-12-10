@@ -1,5 +1,7 @@
 package com.example.reservaplusapp.Body
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
@@ -27,12 +29,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.reservaplusapp.Models.HabitacionesReservasViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -46,16 +54,10 @@ fun FormularioHabitacionScreen(
     endDate: LocalDate,
     serviciosIds: String,
     navController: NavController,
-    viewModel: HabitacionesViewModel = viewModel()
+    viewModel: HabitacionesReservasViewModel = viewModel()
 ) {
     var numeroPersonas by remember { mutableStateOf("") }
-
-    val habitacion by viewModel.selectedHabitacion
-
-
-    LaunchedEffect(habitacionId) {
-        viewModel.setSelectedHabitacion(habitacionId)
-    }
+    val context = LocalContext.current //
 
     Column(
         modifier = Modifier
@@ -63,13 +65,7 @@ fun FormularioHabitacionScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Reservar ${habitacion?.nombre ?: "Habitación"}",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF57BDD3),
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+
 
         OutlinedTextField(
             value = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -144,12 +140,22 @@ fun FormularioHabitacionScreen(
 
         Button(
             onClick = {
-                // Simular el proceso de pago
-                val paymentSuccessful = Math.random() < 0.5 // 50% de probabilidad de éxito
-                if (paymentSuccessful) {
-                    navController.navigate("payment_success")
-                } else {
-                    navController.navigate("payment_error")
+                val serviciosList = serviciosIds.split(",").mapNotNull { it.toIntOrNull() }
+                CoroutineScope(Dispatchers.IO).launch {
+                    val url = viewModel.crearCheckout(
+                        habitacionId,
+                        numeroHabitacion,
+                        startDate.atTime(14, 0).toString(), // Hora fija: 14:00
+                        endDate.atTime(11, 0).toString(),  // Hora fija: 11:00
+                        numeroPersonas.toIntOrNull() ?: 1,
+                        serviciosList
+                    )
+                    url?.let {
+                        withContext(context = Dispatchers.Main) {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+                           context.startActivity(intent)
+                        }
+                    }
                 }
             },
             modifier = Modifier
