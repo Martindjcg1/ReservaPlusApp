@@ -1,10 +1,12 @@
 package com.example.reservaplusapp
 
+import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +23,19 @@ import com.example.reservaplusapp.ui.theme.PaymentResultSplashScreen
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
+
+    val context = LocalContext.current
+    val intent = (context as Activity).intent
+    val deepLink = intent.data?.path
+
+    // Si el deep link es igual a "/main", navegamos a la pantalla principal
+    if (deepLink == "/main") {
+        LaunchedEffect(key1 = deepLink) {
+            navController.navigate("main") {
+                popUpTo("splash") { inclusive = true }  // Elimina la pila anterior
+            }
+        }
+    }
 
     NavHost(navController = navController, startDestination = "splash") {
         composable("splash") {

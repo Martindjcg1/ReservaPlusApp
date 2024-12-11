@@ -8,8 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://10.0.2.2:8000/"
-    //private const val BASE_URL = "https://reservaplus.onrender.com/"
+    //private const val BASE_URL = "http://10.0.2.2:8000/"
+    private const val BASE_URL = "https://reservaplus.onrender.com/"
 
     private lateinit var appContext: Context
 

@@ -24,26 +24,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-
-
-
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="reservaplus.onrender.com"
-                    android:path="/Reservas/api/success" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="reservaplus.onrender.com"
-                    android:path="/Reservas/api/cancel" />
+                <data android:scheme="reservasplus" android:host="app" android:pathPrefix="/main" />
             </intent-filter>
 
 
