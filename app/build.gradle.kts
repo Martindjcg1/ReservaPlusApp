@@ -3,6 +3,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")  //Agregar el firebase a la aplicacion
 }
 
 android {
@@ -52,6 +53,11 @@ android {
 }
 
 dependencies {
+    //Agregar el firebase a la aplicacion
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
+
     // Sheets Compose Dialogs - Core
     implementation ("com.maxkeppeler.sheets-compose-dialogs:core:1.0.2")
 

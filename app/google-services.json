@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765662710885",
+    "project_id": "reservaplus-4c213",
+    "storage_bucket": "reservaplus-4c213.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765662710885:android:c8957904f868329fb9ca8c",
+        "android_client_info": {
+          "package_name": "com.example.reservaplusapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9NmjG49wlt_OV1Cp2GskqJxNjVk5AwkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
