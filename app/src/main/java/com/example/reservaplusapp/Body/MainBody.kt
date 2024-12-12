@@ -1,6 +1,7 @@
 package com.example.reservaplusapp.Body
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -43,8 +44,10 @@ import com.example.reservaplusapp.Clases.ReservaInfo
 import com.example.reservaplusapp.R
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.example.reservaplusapp.Clases.Habitacion
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,10 +94,17 @@ fun MainBody(
 }
 
 @Composable
-fun ReservaItem(reservaInfo: ReservaInfo, primaryColor: Color) {
+fun ReservaItem(
+    reservaInfo: ReservaInfo,
+    primaryColor: Color,
+    reservasViewModel: ReservasViewModel = viewModel()
+) {
     val reserva = reservaInfo.reserva
     val habitaciones = reservaInfo.habitaciones
     val servicios = reservaInfo.servicios
+    val isLoading by reservasViewModel.isLoading
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
@@ -157,7 +167,8 @@ fun ReservaItem(reservaInfo: ReservaInfo, primaryColor: Color) {
 
                 // Fecha formateada
                 val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                val fechaInicio = ZonedDateTime.parse(reserva.fecha_inicio_reserva).format(formatter)
+                val fechaInicio =
+                    ZonedDateTime.parse(reserva.fecha_inicio_reserva).format(formatter)
                 val fechaFin = ZonedDateTime.parse(reserva.fecha_final_reserva).format(formatter)
 
                 Text(
@@ -273,25 +284,57 @@ fun ReservaItem(reservaInfo: ReservaInfo, primaryColor: Color) {
                 if (reserva.estado == "pendiente") {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* Implementar lógica de cancelación */ },
+                        onClick = {
+                            reservasViewModel.cancelarReserva(reserva.id) { isSuccess, message ->
+                                dialogMessage = message
+                                showDialog = true
+                            }
+                        }, enabled = !isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Cancelar Reserva",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Cancelar Reserva")
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                                color = Color.White
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Cancelar Reserva",
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Cancelar Reserva")
+                        }
                     }
                 }
             }
         }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = {
+                    Text(text = if (dialogMessage.contains("exitosamente")) "Éxito" else "Error")
+                },
+                text = {
+                    Text(text = dialogMessage)
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Aceptar")
+                    }
+                }
+            )
+        }
     }
+
 }
 
 class ReservasViewModel : ViewModel() {
     var reservasList = mutableStateOf<List<ReservaInfo>>(emptyList())
+        private set
+    var isLoading = mutableStateOf(false)
         private set
 
     fun fetchReservas() {
@@ -308,7 +351,32 @@ class ReservasViewModel : ViewModel() {
             }
         }
     }
+
+    fun cancelarReserva(reservaId: Int, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.cancelarReserva(reservaId)
+                Log.d("id de reservas",reservaId.toString())
+                Log.d("respuesta",response.body().toString())
+                if (response.isSuccessful) {
+                    onResult(true, "Reserva cancelada exitosamente.")
+                    fetchReservas() // Actualiza la lista después de cancelar
+                } else {
+                    val errorMessage = response.errorBody()?.string() ?: "Error desconocido"
+                    onResult(false, errorMessage)
+                }
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Error desconocido")
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
 }
+
+
+
 
 
 

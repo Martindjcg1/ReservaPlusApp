@@ -60,6 +60,9 @@ interface ApiService {
     @GET("Reservas/api/reservas_usuario/") // Reemplaza con la ruta correcta
     suspend fun getReservas(): Response<ReservasResponse>
 
+    @POST("Reservas/api/reservas/cancelar/{reserva_id}/")
+    suspend fun cancelarReserva(@Path("reserva_id") reservaId: Int): Response<Unit>
+
     @POST("Reservas/api/validar-fechas/")
     suspend fun validarFechas(@Body fechas: FechasReserva): Response<FechasResponse>
 
