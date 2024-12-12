@@ -1,6 +1,7 @@
 package com.example.reservaplusapp.Body
 
 import android.util.Log
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -36,10 +43,16 @@ import com.example.reservaplusapp.Clases.ReservaInfo
 import com.example.reservaplusapp.R
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import coil.compose.AsyncImage
 import com.example.reservaplusapp.Clases.Habitacion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.text.SimpleDateFormat
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 @Composable
@@ -47,32 +60,38 @@ fun MainBody(
     modifier: Modifier = Modifier,
     reservasViewModel: ReservasViewModel = viewModel()
 ) {
+    val primaryColor = Color(0xFF57BDD3)
+
     LaunchedEffect(Unit) {
         reservasViewModel.fetchReservas()
     }
 
-    // Obtén las reservas del ViewModel
     val reservas = reservasViewModel.reservasList.value
-    Log.e("resulatdo",reservas.toString())
 
     LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp)
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (reservas.isEmpty()) {
             item {
-                Text("No se encontraron reservas.", modifier = Modifier.fillMaxWidth())
+                Text(
+                    "No se encontraron reservas.",
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Gray
+                )
             }
         } else {
             items(reservas) { reservaInfo ->
-                ReservaItem(reservaInfo)
+                ReservaItem(reservaInfo, primaryColor)
             }
         }
     }
 }
 
 @Composable
-fun ReservaItem(reservaInfo: ReservaInfo) {
+fun ReservaItem(reservaInfo: ReservaInfo, primaryColor: Color) {
     val reserva = reservaInfo.reserva
     val habitaciones = reservaInfo.habitaciones
     val servicios = reservaInfo.servicios
@@ -80,71 +99,196 @@ fun ReservaItem(reservaInfo: ReservaInfo) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Información de la reserva
-            Text(
-                text = "Reserva del ${reserva.fecha_inicio_reserva} al ${reserva.fecha_final_reserva}",
+            // Fondo decorativo con Canvas
+            Canvas(
+                modifier = Modifier.matchParentSize()
+            ) {
+                val path = Path()
+                path.moveTo(0f, 0f)
+                path.lineTo(size.width, 0f)
+                path.lineTo(size.width, size.height * 0.3f)
+                path.quadraticBezierTo(
+                    size.width * 0.5f,
+                    size.height * 0.2f,
+                    0f,
+                    size.height * 0.4f
+                )
+                path.close()
 
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Número de Habitación: ${reserva.Numero_de_habitacion}"
+                drawPath(
+                    path = path,
+                    color = primaryColor.copy(alpha = 0.2f)
+                )
 
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Habitaciones asociadas
-            habitaciones.forEach { habitacionInfo ->
-                val habitacion = habitacionInfo.habitacion
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    // Imagen de la habitación
-                    AsyncImage(
-                        model = habitacion.imagen_slug,
-                        contentDescription = "Imagen de Habitación",
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = "Personas: ${habitacion.personas}",
-
-                        )
-                    }
-                }
+                // Círculos decorativos
+                drawCircle(
+                    color = primaryColor.copy(alpha = 0.1f),
+                    radius = 60.dp.toPx(),
+                    center = Offset(size.width * 0.9f, size.height * 0.1f)
+                )
+                drawCircle(
+                    color = primaryColor.copy(alpha = 0.05f),
+                    radius = 40.dp.toPx(),
+                    center = Offset(size.width * 0.1f, size.height * 0.8f)
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Servicios asociados
-            if (servicios.isNotEmpty()) {
+            // Contenido del Card
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
-                    text = "Servicios:",
-
-                    fontWeight = FontWeight.Bold
+                    text = "Reserva",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor
                 )
-                servicios.forEach { servicio ->
-                    Text(
-                        text = "Servicio: ${servicio.nombre_servicio}",
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Fecha formateada
+                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                val fechaInicio = ZonedDateTime.parse(reserva.fecha_inicio_reserva).format(formatter)
+                val fechaFin = ZonedDateTime.parse(reserva.fecha_final_reserva).format(formatter)
+
+                Text(
+                    text = "$fechaInicio - $fechaFin",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AsyncImage(
+                    model = habitaciones.firstOrNull()?.habitacion?.imagen_slug,
+                    contentDescription = "Imagen de Habitación",
+                    modifier = Modifier
+                        .size(250.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Capacidad",
+                        tint = primaryColor
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${habitaciones.firstOrNull()?.habitacion?.personas ?: 0} personas",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Número de Habitación",
+                        tint = primaryColor
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Habitación ${reserva.Numero_de_habitacion}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = when (reserva.estado) {
+                            "pendiente" -> Icons.Default.Refresh
+                            "en curso" -> Icons.Default.CheckCircle
+                            else -> Icons.Default.Info
+                        },
+                        contentDescription = "Estado de la Reserva",
+                        tint = when (reserva.estado) {
+                            "pendiente" -> Color(0xFFFFA500) // Naranja
+                            "en curso" -> Color(0xFF00FF00)  // Verde
+                            else -> Color(0xFF808080)        // Gris
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = reserva.estado.capitalize(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = when (reserva.estado) {
+                            "pendiente" -> Color(0xFFFFA500) // Naranja
+                            "en curso" -> Color(0xFF00FF00)  // Verde
+                            else -> Color(0xFF808080)        // Gris
+                        }
+                    )
+                }
+
+                if (servicios.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Servicios Incluidos",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
+                    )
+                    servicios.forEach { servicio ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Servicio",
+                                tint = primaryColor
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = servicio.nombre_servicio,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+
+                if (reserva.estado == "pendiente") {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { /* Implementar lógica de cancelación */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Cancelar Reserva",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cancelar Reserva")
+                    }
                 }
             }
         }
     }
 }
-
 
 class ReservasViewModel : ViewModel() {
     var reservasList = mutableStateOf<List<ReservaInfo>>(emptyList())

@@ -26,15 +26,17 @@ import coil.compose.AsyncImage
 import com.example.reservaplusapp.Apis.RetrofitInstance
 import com.example.reservaplusapp.Clases.FechasReserva
 import com.example.reservaplusapp.Clases.FechasResponse
-import com.maxkeppeker.sheets.core.models.base.rememberSheetState
+import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
+
+
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
+import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservasContent(
@@ -43,11 +45,15 @@ fun ReservasContent(
 ) {
     var startDate by remember { mutableStateOf<LocalDate?>(null) }
     var endDate by remember { mutableStateOf<LocalDate?>(null) }
-    val calendarState = rememberSheetState()
+    val calendarState = rememberUseCaseState()
     val fechasViewModel: FechasViewModel = viewModel()
     val fechasResponse = fechasViewModel.fechasResponse
     val isLoading = fechasViewModel.isLoading
-    var fechasReserva = FechasReserva(fecha_inicio = startDate.toString(), fecha_final = endDate.toString())
+    var fechasReserva by remember { mutableStateOf(FechasReserva(fecha_inicio = "", fecha_final = "")) }
+
+    val today = remember { LocalDate.now() }
+    val oneYearFromNow = remember { today.plusYears(1) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -80,7 +86,7 @@ fun ReservasContent(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
                 Text(
                     text = if (startDate != null && endDate != null) {
                         "${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}"
@@ -102,13 +108,17 @@ fun ReservasContent(
                     state = calendarState,
                     config = CalendarConfig(
                         monthSelection = true,
-                        yearSelection = true
+                        yearSelection = true,
+                        style = CalendarStyle.MONTH,
+                        boundary = today..oneYearFromNow
                     ),
                     selection = CalendarSelection.Period { start, end ->
-                        startDate = start
-                        endDate = end
-                        fechasReserva = FechasReserva(fecha_inicio = startDate.toString(), fecha_final = endDate.toString())
-                        fechasViewModel.validarFechas(fechasReserva)
+                        if (start >= today && end <= oneYearFromNow) {
+                            startDate = start
+                            endDate = end
+                            fechasReserva = FechasReserva(fecha_inicio = startDate.toString(), fecha_final = endDate.toString())
+                            fechasViewModel.validarFechas(fechasReserva)
+                        }
                     }
                 )
             }
@@ -137,18 +147,11 @@ fun ReservasContent(
             Button(
                 onClick = {
                     if (startDate != null && endDate != null && !isLoading) {
-                        // Validamos las fechas con el ViewModel al presionar Confirmar
-
-
-                        // Esperamos la respuesta
                         if (fechasResponse != null) {
-                            Log.d("Fechas",fechasReserva.toString())
-                            // Si la respuesta es válida, navegar a la siguiente pantalla
+                            //Log.d("Fechas", fechasReserva.toString())
                             navController.navigate("habitaciones/${startDate}/${endDate}")
                         } else {
-                            // Mostrar un mensaje de error si las fechas no son válidas
-                            // Aquí podrías mostrar un snackbar o un mensaje en la UI.
-                            Log.e("Error en las Fechas","")
+                            //Log.e("Error en las Fechas", "")
                         }
                     }
                 },
@@ -169,6 +172,9 @@ fun ReservasContent(
         }
     }
 }
+
+
+
 
 
 class FechasViewModel : ViewModel() {

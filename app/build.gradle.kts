@@ -62,7 +62,7 @@ dependencies {
     implementation ("com.maxkeppeler.sheets-compose-dialogs:core:1.0.2")
 
     // Sheets Compose Dialogs - Calendar
-    implementation ("com.maxkeppeler.sheets-compose-dialogs:calendar:1.0.2")
+    implementation ("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
 
     // Coil para cargar imágenes de forma asíncrona
     implementation ("io.coil-kt:coil-compose:2.2.2")

@@ -62,7 +62,7 @@ fun FormularioHabitacionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp) // Añadido padding superior
             .verticalScroll(rememberScrollState())
     ) {
 
@@ -127,12 +127,7 @@ fun FormularioHabitacionScreen(
             )
         )
 
-        Text(
-            text = "Servicios Adicionales Seleccionados",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF57BDD3),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+
 
 
 
