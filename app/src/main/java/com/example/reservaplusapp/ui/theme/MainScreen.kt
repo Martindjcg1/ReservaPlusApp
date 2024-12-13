@@ -42,7 +42,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.reservaplusapp.Body.FormularioHabitacionScreen
+import com.example.reservaplusapp.Body.ReservasViewModel
 import com.example.reservaplusapp.Body.ServiciosChooseScreen
+import java.time.ZonedDateTime
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -51,9 +53,44 @@ import com.example.reservaplusapp.Body.ServiciosChooseScreen
 fun MainScreen(navController: NavController) {
     var selectedTab by remember { mutableStateOf(0) }
     var showNotifications by remember { mutableStateOf(false) }
-    var notifications by remember { mutableStateOf(listOf("Nueva reserva disponible", "¡Oferta especial!")) }
+    var notifications by remember { mutableStateOf(listOf<String>()) }
 
     val navHostController = rememberNavController()
+    val viewModel: ReservasViewModel = viewModel()
+    val reservasList = viewModel.reservasList.value
+    // Fetch reservas when the screen is loaded
+    LaunchedEffect(Unit) {
+        viewModel.fetchReservas() // Llama a fetchReservas() solo una vez cuando se carga la pantalla
+    }
+
+    LaunchedEffect(reservasList) { // Observa cambios en reservasList
+        val today = LocalDate.now() // Fecha actual
+
+        val notificationsList = mutableListOf<String>()
+
+        for (reservaInfo in reservasList) {
+            // Convertir fecha_final_reserva a LocalDate
+            val fechaFinalReserva = try {
+                // Parsear la fecha con el formato adecuado
+                ZonedDateTime.parse(reservaInfo.reserva.fecha_final_reserva).toLocalDate()
+            } catch (e: Exception) {
+                // Si ocurre un error al parsear la fecha, se devuelve una fecha inválida
+                LocalDate.MIN
+            }
+
+            // Comparar si la fecha final de la reserva es igual a la fecha de hoy
+            if (fechaFinalReserva.equals(today)) {
+                notificationsList.add(
+                    "Tu reserva de la habitación ${reservaInfo.reserva.Numero_de_habitacion} se acaba hoy $fechaFinalReserva"
+                )
+            }
+        }
+
+        notifications = notificationsList // Actualiza las notificaciones
+    }
+
+    // Observe the reservations list
+
 
     Scaffold(
         topBar = {
@@ -126,8 +163,10 @@ fun MainScreen(navController: NavController) {
                 MainBody(modifier = Modifier.padding(paddingValues))
             }
             composable("reservas") {
-                ReservasContent(modifier = Modifier.padding(paddingValues),
-                    navController = navHostController)
+                ReservasContent(
+                    modifier = Modifier.padding(paddingValues),
+                    navController = navHostController
+                )
             }
             composable("servicios") {
                 ServiciosContent(modifier = Modifier.padding(paddingValues))
