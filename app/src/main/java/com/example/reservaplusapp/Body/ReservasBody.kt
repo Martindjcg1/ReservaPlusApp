@@ -26,9 +26,8 @@ import coil.compose.AsyncImage
 import com.example.reservaplusapp.Apis.RetrofitInstance
 import com.example.reservaplusapp.Clases.FechasReserva
 import com.example.reservaplusapp.Clases.FechasResponse
+import com.example.reservaplusapp.Models.FechasViewModel
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
-
-
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
@@ -36,6 +35,8 @@ import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,28 +178,3 @@ fun ReservasContent(
 
 
 
-class FechasViewModel : ViewModel() {
-    var fechasResponse by mutableStateOf<FechasResponse?>(null)
-        private set
-    var isLoading by mutableStateOf(false)
-        private set
-
-    fun validarFechas(fechasReserva: FechasReserva) {
-        viewModelScope.launch {
-            isLoading = true
-            try {
-                val response = RetrofitInstance.api.validarFechas(fechasReserva)
-                if (response.isSuccessful) {
-                    Log.d("Respuesta",response.body().toString())
-                    fechasResponse = response.body()
-                } else {
-                    fechasResponse = null
-                }
-            } catch (e: Exception) {
-                fechasResponse = null
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-}

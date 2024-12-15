@@ -42,8 +42,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.reservaplusapp.Body.FormularioHabitacionScreen
-import com.example.reservaplusapp.Body.ReservasViewModel
 import com.example.reservaplusapp.Body.ServiciosChooseScreen
+import com.example.reservaplusapp.Models.ReservasViewModel
 import java.time.ZonedDateTime
 
 

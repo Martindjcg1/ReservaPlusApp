@@ -41,9 +41,8 @@ import com.example.reservaplusapp.Clases.PasswordChangeRequest
 import com.example.reservaplusapp.Clases.PasswordChangeResponse
 import com.example.reservaplusapp.Clases.UpdateProfileRequest
 import com.example.reservaplusapp.Clases.UpdateProfileResponse
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.reservaplusapp.Models.LogoutViewModel
+import com.example.reservaplusapp.Models.UserProfileViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.HttpException
@@ -59,7 +58,7 @@ fun ProfileContent(
     var showSection by remember { mutableStateOf<String?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val viewModel: UserProfileViewModel = viewModel()
-    val viewModel2:  LogoutViewModel= viewModel()
+    val viewModel2: LogoutViewModel = viewModel()
     val context = LocalContext.current
 
     Box(
@@ -243,33 +242,7 @@ fun ProfileContent(
     }
 }
 
-class LogoutViewModel : ViewModel() {
-    fun logout(context: Context, onLogout: () -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val response = RetrofitInstance.api.logout()
-                if (response.isSuccessful) {
-                    // Borra el token de SharedPreferences
-                    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                    sharedPreferences.edit().clear().apply()
-                    Log.e("Borrado",sharedPreferences.toString())
-                    // Navega fuera del perfil
-                    withContext(Dispatchers.Main) {
-                        onLogout()
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error al cerrar sesión.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error de red: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-}
+
 
 
 
@@ -312,43 +285,7 @@ private fun ProfileOption(
     }
 }
 
-class UserProfileViewModel : ViewModel() {
-    fun fetchUserProfile(onResult: (UserProfile?) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.api.getUserProfile()
-                val userProfile = response.user
-                onResult(userProfile)
-            } catch (e: Exception) {
-                onResult(null)
-            }
-        }
-    }
 
-    fun updateUserProfile(
-        request: UpdateProfileRequest,
-        onSuccess: (UpdateProfileResponse) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                val response: Response<UpdateProfileResponse> =
-                    RetrofitInstance.api.updateUserProfile(request)
-                if (response.isSuccessful) {
-                    response.body()?.let { onSuccess(it) }
-                } else {
-                    onError("Error al actualizar el perfil: ${response.errorBody()?.string()}")
-                }
-            } catch (e: HttpException) {
-                onError("Error al conectar con el servidor: ${e.message()}")
-            } catch (e: Exception) {
-                onError("Error inesperado: ${e.message}")
-            }
-        }
-    }
-
-
-}
 
 @Composable
 fun PersonalInfoSection() {

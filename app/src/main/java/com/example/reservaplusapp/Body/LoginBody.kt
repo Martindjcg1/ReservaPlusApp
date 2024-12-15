@@ -116,27 +116,7 @@ fun LoginBody(
             Text("Iniciar sesión")
         }
         Spacer(modifier = Modifier.height(24.dp))
-        LoginDivider()
-        Spacer(modifier = Modifier.height(24.dp))
-        OutlinedButton(
-            onClick = { /* Implementar lógica de inicio de sesión con Google */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-            border = BorderStroke(1.dp, Color.White)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_google),
-                    contentDescription = "Google logo",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Iniciar sesión con Google")
-            }
-        }
+
     }
 }
 

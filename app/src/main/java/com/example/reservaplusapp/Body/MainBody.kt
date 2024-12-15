@@ -1,10 +1,7 @@
 package com.example.reservaplusapp.Body
 
-import android.util.Log
-import android.widget.Toast
+
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -50,6 +47,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.example.reservaplusapp.Clases.Habitacion
+import com.example.reservaplusapp.Models.ReservasViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.text.SimpleDateFormat
@@ -70,24 +68,35 @@ fun MainBody(
     }
 
     val reservas = reservasViewModel.reservasList.value
-
+    val isLoading = reservasViewModel.isLoading.value
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        if (reservas.isEmpty()) {
+        if (isLoading) {
             item {
-                Text(
-                    "No se encontraron reservas.",
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Gray
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = primaryColor)
+                }
             }
         } else {
-            items(reservas) { reservaInfo ->
-                ReservaItem(reservaInfo, primaryColor)
+            if (reservas.isEmpty()) {
+                item {
+                    Text(
+                        "No se encontraron reservas.",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                items(reservas) { reservaInfo ->
+                    ReservaItem(reservaInfo, primaryColor)
+                }
             }
         }
     }
@@ -331,49 +340,7 @@ fun ReservaItem(
 
 }
 
-class ReservasViewModel : ViewModel() {
-    var reservasList = mutableStateOf<List<ReservaInfo>>(emptyList())
-        private set
-    var isLoading = mutableStateOf(false)
-        private set
 
-    fun fetchReservas() {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.api.getReservas()
-                if (response.isSuccessful) {
-                    reservasList.value = response.body()?.reservas_info ?: emptyList()
-                } else {
-                    Log.e("ReservasViewModel", "Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ReservasViewModel", "Exception: ${e.message}")
-            }
-        }
-    }
-
-    fun cancelarReserva(reservaId: Int, onResult: (Boolean, String) -> Unit) {
-        viewModelScope.launch {
-            isLoading.value = true
-            try {
-                val response = RetrofitInstance.api.cancelarReserva(reservaId)
-                Log.d("id de reservas",reservaId.toString())
-                Log.d("respuesta",response.body().toString())
-                if (response.isSuccessful) {
-                    onResult(true, "Reserva cancelada exitosamente.")
-                    fetchReservas() // Actualiza la lista después de cancelar
-                } else {
-                    val errorMessage = response.errorBody()?.string() ?: "Error desconocido"
-                    onResult(false, errorMessage)
-                }
-            } catch (e: Exception) {
-                onResult(false, e.message ?: "Error desconocido")
-            } finally {
-                isLoading.value = false
-            }
-        }
-    }
-}
 
 
 
